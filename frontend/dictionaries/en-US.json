@@ -1,0 +1,29 @@
+{
+  "header": {
+    "breadcrumb": {
+      "root": "Building Your Application",
+      "current": "Data Fetching"
+    },
+    "actions": {
+      "language": {
+        "menu": "Language",
+        "sr": "Change language"
+      },
+      "theme": {
+        "menu": "Theme",
+        "sr": "Toggle theme",
+        "options": {
+          "light": "Light",
+          "dark": "Dark",
+          "system": "System"
+        }
+      }
+    }
+  },
+  "dashboard": {
+    "hero": {
+      "title": "Welcome back, shadcn",
+      "description": "Monitor your projects, manage conversations, and get quick access to the sections you visit most."
+    }
+  }
+}

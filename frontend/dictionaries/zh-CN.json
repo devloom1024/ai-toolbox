@@ -1,0 +1,29 @@
+{
+  "header": {
+    "breadcrumb": {
+      "root": "构建你的应用",
+      "current": "数据获取"
+    },
+    "actions": {
+      "language": {
+        "menu": "语言",
+        "sr": "切换语言"
+      },
+      "theme": {
+        "menu": "主题",
+        "sr": "切换主题",
+        "options": {
+          "light": "亮色",
+          "dark": "暗色",
+          "system": "跟随系统"
+        }
+      }
+    }
+  },
+  "dashboard": {
+    "hero": {
+      "title": "欢迎回来，shadcn",
+      "description": "在这里可以监控项目、管理对话，并快速跳转到常用的功能模块。"
+    }
+  }
+}

@@ -1,5 +1,7 @@
-import DashboardPage from "./dashboard/page";
+import { redirect } from "next/navigation";
 
-export default function Home() {
-  return <DashboardPage />;
+import { i18n } from "@/lib/i18n-config";
+
+export default function IndexPage() {
+  redirect(`/${i18n.defaultLocale}`);
 }
