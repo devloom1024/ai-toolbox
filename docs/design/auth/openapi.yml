@@ -1,0 +1,361 @@
+openapi: 3.0.3
+info:
+  title: Auth Service API
+  version: 1.0.0
+  description: >
+    登录、注册、鉴权及第三方接入接口定义。响应结构遵循 docs/specs/api.md，
+    所有接口返回 {code,message,data} 的 JSON 格式。
+servers:
+  - url: https://api.example.com
+    description: Production
+  - url: https://staging-api.example.com
+    description: Staging
+tags:
+  - name: Auth
+    description: 用户注册 / 登录 / 安全操作
+paths:
+  /api/v1/auth/register:
+    post:
+      tags: [Auth]
+      summary: 用户注册（邮箱）
+      description: 提交邮箱验证码及密码创建账号
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: 注册成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseRegister'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          description: 邮箱已存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseError'
+  /api/v1/auth/login:
+    post:
+      tags: [Auth]
+      summary: 用户登录
+      description: 根据邮箱/手机号/第三方 ID 进行密码认证
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: 登录成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseToken'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /api/v1/auth/token/refresh:
+    post:
+      tags: [Auth]
+      summary: 刷新 Access Token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshRequest'
+      responses:
+        '200':
+          description: 刷新成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseToken'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /api/v1/auth/logout:
+    post:
+      tags: [Auth]
+      summary: 登出并吊销 Token
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LogoutRequest'
+      responses:
+        '200':
+          description: 登出成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /api/v1/auth/code/email:
+    post:
+      tags: [Auth]
+      summary: 请求邮箱验证码
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmailCodeRequest'
+      responses:
+        '200':
+          description: 发送成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '429':
+          description: 触发频率限制
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseError'
+  /api/v1/auth/password/reset:
+    post:
+      tags: [Auth]
+      summary: 重置密码
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PasswordResetRequest'
+      responses:
+        '200':
+          description: 重置成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /api/v1/auth/bind/phone:
+    post:
+      tags: [Auth]
+      summary: 绑定手机号
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BindPhoneRequest'
+      responses:
+        '200':
+          description: 绑定成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /api/v1/auth/profile:
+    get:
+      tags: [Auth]
+      summary: 查询个人资料
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 查询成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseProfile'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  responses:
+    BadRequest:
+      description: 参数错误或请求非法
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiResponseError'
+    Unauthorized:
+      description: 未认证或 Token 已失效
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiResponseError'
+  schemas:
+    ApiResponse:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: integer
+          example: 0
+        message:
+          type: string
+          example: ok
+        data:
+          nullable: true
+    ApiResponseError:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+      example:
+        code: 2004
+        message: password error
+        data: null
+    ApiResponseRegister:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/RegisterResult'
+    ApiResponseToken:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/TokenPair'
+    ApiResponseProfile:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/Profile'
+    RegisterRequest:
+      type: object
+      required: [email, password, code, nickname]
+      properties:
+        email:
+          type: string
+          format: email
+          example: user@example.com
+        password:
+          type: string
+          format: password
+          minLength: 8
+        code:
+          type: string
+          example: '123456'
+        nickname:
+          type: string
+          example: DevUser
+    RegisterResult:
+      type: object
+      properties:
+        userId:
+          type: integer
+          format: int64
+    LoginRequest:
+      type: object
+      required: [identifier, password]
+      properties:
+        identifier:
+          type: string
+          description: 邮箱/手机号/第三方 ID
+        type:
+          type: string
+          enum: [EMAIL, PHONE, LINUX_DO]
+          description: 可选，后端也可自动识别
+        password:
+          type: string
+          format: password
+    TokenPair:
+      type: object
+      properties:
+        accessToken:
+          type: string
+        refreshToken:
+          type: string
+        expiresIn:
+          type: integer
+          format: int64
+          description: Access Token 有效期（秒）
+    RefreshRequest:
+      type: object
+      required: [refreshToken]
+      properties:
+        refreshToken:
+          type: string
+    LogoutRequest:
+      type: object
+      required: [refreshToken]
+      properties:
+        refreshToken:
+          type: string
+    EmailCodeRequest:
+      type: object
+      required: [email, scene]
+      properties:
+        email:
+          type: string
+          format: email
+        scene:
+          type: string
+          enum: [REGISTER, RESET_PASSWORD, BIND]
+    PasswordResetRequest:
+      type: object
+      required: [email, code, newPassword]
+      properties:
+        email:
+          type: string
+          format: email
+        code:
+          type: string
+        newPassword:
+          type: string
+          format: password
+    BindPhoneRequest:
+      type: object
+      required: [phone, code]
+      properties:
+        phone:
+          type: string
+          example: '13800000000'
+        code:
+          type: string
+          example: '234567'
+    Profile:
+      type: object
+      properties:
+        userId:
+          type: integer
+          format: int64
+        nickname:
+          type: string
+        avatar:
+          type: string
+        status:
+          type: integer
+          example: 1
+        bindings:
+          type: array
+          items:
+            $ref: '#/components/schemas/AuthBinding'
+    AuthBinding:
+      type: object
+      properties:
+        type:
+          type: string
+        identifier:
+          type: string
+        verified:
+          type: boolean
