@@ -38,7 +38,7 @@ EXECUTE FUNCTION update_updated_at_column();
 CREATE TABLE t_user_auth (
   id BIGSERIAL PRIMARY KEY,
   user_id BIGINT NOT NULL,
-  identity_type VARCHAR(32) NOT NULL,
+  identity_type VARCHAR(32) NOT NULL CHECK (identity_type IN ('EMAIL', 'LINUX_DO')),
   identifier VARCHAR(255) NOT NULL,
   credential VARCHAR(255) NOT NULL DEFAULT '',
   verified BOOLEAN NOT NULL DEFAULT FALSE,
@@ -53,8 +53,8 @@ CREATE INDEX idx_t_user_auth_user_id ON t_user_auth (user_id);
 COMMENT ON TABLE t_user_auth IS '用户认证方式';
 COMMENT ON COLUMN t_user_auth.id IS '记录主键';
 COMMENT ON COLUMN t_user_auth.user_id IS '关联 t_user.id';
-COMMENT ON COLUMN t_user_auth.identity_type IS '认证方式：EMAIL/PHONE/LINUX_DO 等';
-COMMENT ON COLUMN t_user_auth.identifier IS '唯一标识（邮箱/手机号/第三方 ID）';
+COMMENT ON COLUMN t_user_auth.identity_type IS '认证方式：EMAIL（当前支持）/LINUX_DO/PHONE（未来可能）';
+COMMENT ON COLUMN t_user_auth.identifier IS '唯一标识：邮箱（当前）/手机号（未来可能）/LinuxDo 用户 ID';
 COMMENT ON COLUMN t_user_auth.credential IS '凭证：BCrypt 密码或第三方令牌摘要';
 COMMENT ON COLUMN t_user_auth.verified IS '是否已验证';
 COMMENT ON COLUMN t_user_auth.last_login_at IS '最近登录时间';
@@ -71,7 +71,8 @@ EXECUTE FUNCTION update_updated_at_column();
 -- ============================================
 CREATE TABLE t_verification_code (
   id BIGSERIAL PRIMARY KEY,
-  channel VARCHAR(16) NOT NULL CHECK (channel IN ('EMAIL', 'PHONE')),
+  channel VARCHAR(16) NOT NULL CHECK (channel IN ('EMAIL')),
+  scene VARCHAR(32) NOT NULL CHECK (scene IN ('REGISTER', 'RESET_PASSWORD')),
   identifier VARCHAR(255) NOT NULL,
   code VARCHAR(10) NOT NULL,
   expire_at TIMESTAMPTZ NOT NULL,
@@ -80,13 +81,14 @@ CREATE TABLE t_verification_code (
 );
 
 CREATE INDEX idx_t_verification_code_active 
-  ON t_verification_code (identifier, channel) 
+  ON t_verification_code (identifier, channel, scene) 
   WHERE used = FALSE AND expire_at > CURRENT_TIMESTAMP;
 
 COMMENT ON TABLE t_verification_code IS '验证码审计';
 COMMENT ON COLUMN t_verification_code.id IS '记录主键';
-COMMENT ON COLUMN t_verification_code.channel IS '渠道：EMAIL/PHONE';
-COMMENT ON COLUMN t_verification_code.identifier IS '邮箱或手机号';
+COMMENT ON COLUMN t_verification_code.channel IS '渠道：EMAIL';
+COMMENT ON COLUMN t_verification_code.scene IS '使用场景：REGISTER=注册 RESET_PASSWORD=重置密码';
+COMMENT ON COLUMN t_verification_code.identifier IS '邮箱地址';
 COMMENT ON COLUMN t_verification_code.code IS '验证码';
 COMMENT ON COLUMN t_verification_code.expire_at IS '过期时间';
 COMMENT ON COLUMN t_verification_code.used IS '是否已使用';
@@ -109,6 +111,11 @@ CREATE INDEX idx_t_refresh_token_user_device
   ON t_refresh_token (user_id, device) 
   WHERE expires_at > CURRENT_TIMESTAMP;
 
+-- Ensure one valid token per user per device
+CREATE UNIQUE INDEX uk_t_refresh_token_user_device
+  ON t_refresh_token (user_id, device)
+  WHERE expires_at > CURRENT_TIMESTAMP;
+
 COMMENT ON TABLE t_refresh_token IS 'Refresh Token 管理';
 COMMENT ON COLUMN t_refresh_token.id IS '记录主键';
 COMMENT ON COLUMN t_refresh_token.user_id IS '用户 ID';
@@ -116,6 +123,48 @@ COMMENT ON COLUMN t_refresh_token.token IS 'Refresh Token 摘要';
 COMMENT ON COLUMN t_refresh_token.device IS '终端标识';
 COMMENT ON COLUMN t_refresh_token.expires_at IS '过期时间';
 COMMENT ON COLUMN t_refresh_token.created_at IS '创建时间';
+
+-- ============================================
+-- Table: t_user_oauth_profile
+-- ============================================
+CREATE TABLE t_user_oauth_profile (
+  id BIGSERIAL PRIMARY KEY,
+  user_id BIGINT NOT NULL,
+  identity_type VARCHAR(32) NOT NULL CHECK (identity_type = 'LINUX_DO'),
+  oauth_user_id VARCHAR(255) NOT NULL,
+  oauth_username VARCHAR(255) NOT NULL DEFAULT '',
+  oauth_email VARCHAR(255) NOT NULL DEFAULT '',
+  oauth_avatar VARCHAR(512) NOT NULL DEFAULT '',
+  access_token TEXT NOT NULL DEFAULT '',
+  refresh_token TEXT NOT NULL DEFAULT '',
+  token_expires_at TIMESTAMPTZ,
+  raw_profile JSONB NOT NULL DEFAULT '{}',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT uk_t_user_oauth_identity UNIQUE (identity_type, oauth_user_id)
+);
+
+CREATE INDEX idx_t_user_oauth_user_id ON t_user_oauth_profile (user_id);
+
+COMMENT ON TABLE t_user_oauth_profile IS 'OAuth 第三方登录资料';
+COMMENT ON COLUMN t_user_oauth_profile.id IS '记录主键';
+COMMENT ON COLUMN t_user_oauth_profile.user_id IS '关联 t_user.id';
+COMMENT ON COLUMN t_user_oauth_profile.identity_type IS '第三方平台：LINUX_DO';
+COMMENT ON COLUMN t_user_oauth_profile.oauth_user_id IS 'LinuxDo 用户 ID';
+COMMENT ON COLUMN t_user_oauth_profile.oauth_username IS 'LinuxDo 用户名';
+COMMENT ON COLUMN t_user_oauth_profile.oauth_email IS 'LinuxDo 邮箱';
+COMMENT ON COLUMN t_user_oauth_profile.oauth_avatar IS 'LinuxDo 头像 URL';
+COMMENT ON COLUMN t_user_oauth_profile.access_token IS 'OAuth Access Token（建议加密存储）';
+COMMENT ON COLUMN t_user_oauth_profile.refresh_token IS 'OAuth Refresh Token（建议加密存储）';
+COMMENT ON COLUMN t_user_oauth_profile.token_expires_at IS 'Access Token 过期时间';
+COMMENT ON COLUMN t_user_oauth_profile.raw_profile IS 'LinuxDo 返回的完整用户信息（JSON）';
+COMMENT ON COLUMN t_user_oauth_profile.created_at IS '创建时间';
+COMMENT ON COLUMN t_user_oauth_profile.updated_at IS '更新时间';
+
+CREATE TRIGGER update_t_user_oauth_profile_updated_at
+BEFORE UPDATE ON t_user_oauth_profile
+FOR EACH ROW
+EXECUTE FUNCTION update_updated_at_column();
 
 -- ============================================
 -- Table: t_login_audit
@@ -138,7 +187,7 @@ COMMENT ON TABLE t_login_audit IS '登录审计';
 COMMENT ON COLUMN t_login_audit.id IS '记录主键';
 COMMENT ON COLUMN t_login_audit.user_id IS '用户 ID';
 COMMENT ON COLUMN t_login_audit.identity_type IS '登录方式';
-COMMENT ON COLUMN t_login_audit.identifier IS '登录标识（邮箱/手机号等）';
+COMMENT ON COLUMN t_login_audit.identifier IS '登录标识（邮箱/LinuxDo 用户名等）';
 COMMENT ON COLUMN t_login_audit.ip IS '登录 IP';
 COMMENT ON COLUMN t_login_audit.user_agent IS 'User Agent';
 COMMENT ON COLUMN t_login_audit.status IS '状态：1=成功 2=失败';

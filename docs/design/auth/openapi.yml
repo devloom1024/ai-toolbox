@@ -24,22 +24,22 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/RegisterRequest'
+              $ref: "#/components/schemas/RegisterParam"
       responses:
-        '201':
+        "201":
           description: 注册成功
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ApiResponseRegister'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '409':
+                $ref: "#/components/schemas/BaseResultRegister"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "409":
           description: 邮箱已存在
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ApiResponseError'
+                $ref: "#/components/schemas/BaseResultError"
   /api/v1/auth/login:
     post:
       tags: [Auth]
@@ -50,16 +50,16 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/LoginRequest'
+              $ref: "#/components/schemas/LoginParam"
       responses:
-        '200':
+        "200":
           description: 登录成功
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ApiResponseToken'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
+                $ref: "#/components/schemas/BaseResultToken"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
   /api/v1/auth/token/refresh:
     post:
       tags: [Auth]
@@ -69,37 +69,38 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/RefreshRequest'
+              $ref: "#/components/schemas/RefreshParam"
       responses:
-        '200':
+        "200":
           description: 刷新成功
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ApiResponseToken'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
+                $ref: "#/components/schemas/BaseResultToken"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
   /api/v1/auth/logout:
     post:
       tags: [Auth]
-      summary: 登出并吊销 Token
+      summary: 登出当前设备或所有设备
+      description: 登出并吊销 Refresh Token，可选择只登出当前设备或登出所有设备
       security:
         - BearerAuth: []
       requestBody:
-        required: true
+        required: false
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/LogoutRequest'
+              $ref: "#/components/schemas/LogoutParam"
       responses:
-        '200':
+        "200":
           description: 登出成功
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ApiResponse'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
+                $ref: "#/components/schemas/BaseResult"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
   /api/v1/auth/code/email:
     post:
       tags: [Auth]
@@ -109,20 +110,20 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/EmailCodeRequest'
+              $ref: "#/components/schemas/EmailCodeParam"
       responses:
-        '200':
+        "200":
           description: 发送成功
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ApiResponse'
-        '429':
+                $ref: "#/components/schemas/BaseResult"
+        "429":
           description: 触发频率限制
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ApiResponseError'
+                $ref: "#/components/schemas/BaseResultError"
   /api/v1/auth/password/reset:
     post:
       tags: [Auth]
@@ -132,22 +133,65 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PasswordResetRequest'
+              $ref: "#/components/schemas/PasswordResetParam"
       responses:
-        '200':
+        "200":
           description: 重置成功
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ApiResponse'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-  /api/v1/auth/bind/phone:
+                $ref: "#/components/schemas/BaseResult"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /api/v1/auth/oauth/linuxdo/authorize:
+    get:
+      tags: [Auth]
+      summary: LinuxDo OAuth 授权
+      description: 重定向到 LinuxDo OAuth 授权页面，开始登录流程
+      parameters:
+        - name: redirect_uri
+          in: query
+          required: false
+          schema:
+            type: string
+          description: 登录成功后的前端跳转地址
+      responses:
+        "302":
+          description: 重定向到 LinuxDo OAuth 授权页面
+  /api/v1/auth/oauth/linuxdo/callback:
+    get:
+      tags: [Auth]
+      summary: LinuxDo OAuth 回调
+      description: 处理 LinuxDo 授权回调，完成登录或注册
+      parameters:
+        - name: code
+          in: query
+          required: true
+          schema:
+            type: string
+          description: LinuxDo 返回的授权码
+        - name: state
+          in: query
+          required: true
+          schema:
+            type: string
+          description: 防 CSRF 的 state 参数
+      responses:
+        "200":
+          description: 登录/注册成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BaseResultToken"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+  /api/v1/auth/bind/linuxdo:
     post:
       tags: [Auth]
-      summary: 绑定手机号
+      summary: 绑定 LinuxDo 账号
+      description: 将当前已登录用户与 LinuxDo 账号进行绑定
       security:
         - BearerAuth: []
       requestBody:
@@ -155,16 +199,22 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/BindPhoneRequest'
+              $ref: "#/components/schemas/BindLinuxDoParam"
       responses:
-        '200':
+        "200":
           description: 绑定成功
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ApiResponse'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
+                $ref: "#/components/schemas/BaseResult"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "409":
+          description: LinuxDo 账号已被其他用户绑定
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BaseResultError"
   /api/v1/auth/profile:
     get:
       tags: [Auth]
@@ -172,14 +222,14 @@ paths:
       security:
         - BearerAuth: []
       responses:
-        '200':
+        "200":
           description: 查询成功
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ApiResponseProfile'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
+                $ref: "#/components/schemas/BaseResultProfile"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
 components:
   securitySchemes:
     BearerAuth:
@@ -192,15 +242,15 @@ components:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/ApiResponseError'
+            $ref: "#/components/schemas/BaseResultError"
     Unauthorized:
       description: 未认证或 Token 已失效
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/ApiResponseError'
+            $ref: "#/components/schemas/BaseResultError"
   schemas:
-    ApiResponse:
+    BaseResult:
       type: object
       required: [code, message]
       properties:
@@ -212,35 +262,35 @@ components:
           example: ok
         data:
           nullable: true
-    ApiResponseError:
+    BaseResultError:
       allOf:
-        - $ref: '#/components/schemas/ApiResponse'
+        - $ref: "#/components/schemas/BaseResult"
       example:
         code: 2004
         message: password error
         data: null
-    ApiResponseRegister:
+    BaseResultRegister:
       allOf:
-        - $ref: '#/components/schemas/ApiResponse'
+        - $ref: "#/components/schemas/BaseResult"
         - type: object
           properties:
             data:
-              $ref: '#/components/schemas/RegisterResult'
-    ApiResponseToken:
+              $ref: "#/components/schemas/RegisterResult"
+    BaseResultToken:
       allOf:
-        - $ref: '#/components/schemas/ApiResponse'
+        - $ref: "#/components/schemas/BaseResult"
         - type: object
           properties:
             data:
-              $ref: '#/components/schemas/TokenPair'
-    ApiResponseProfile:
+              $ref: "#/components/schemas/TokenPairResult"
+    BaseResultProfile:
       allOf:
-        - $ref: '#/components/schemas/ApiResponse'
+        - $ref: "#/components/schemas/BaseResult"
         - type: object
           properties:
             data:
-              $ref: '#/components/schemas/Profile'
-    RegisterRequest:
+              $ref: "#/components/schemas/ProfileResult"
+    RegisterParam:
       type: object
       required: [email, password, code, nickname]
       properties:
@@ -254,7 +304,7 @@ components:
           minLength: 8
         code:
           type: string
-          example: '123456'
+          example: "123456"
         nickname:
           type: string
           example: DevUser
@@ -264,21 +314,34 @@ components:
         userId:
           type: integer
           format: int64
-    LoginRequest:
+    LoginParam:
       type: object
       required: [identifier, password]
       properties:
         identifier:
           type: string
-          description: 邮箱/手机号/第三方 ID
+          description: |
+            登录标识符：
+            - 当前支持：邮箱地址（格式：user@example.com）
+            - 未来可能支持：手机号、用户名等
+          example: "user@example.com"
         type:
           type: string
-          enum: [EMAIL, PHONE, LINUX_DO]
-          description: 可选，后端也可自动识别
+          enum: [EMAIL]
+          default: EMAIL
+          description: |
+            登录类型（可选参数）：
+            - EMAIL: 邮箱登录
+
+            注意：
+            - 若不传此参数，后端会根据 identifier 格式自动识别
+            - 当前版本仅支持邮箱登录，未来可能扩展支持手机号等
         password:
           type: string
           format: password
-    TokenPair:
+          minLength: 8
+          description: 登录密码
+    TokenPairResult:
       type: object
       properties:
         accessToken:
@@ -289,51 +352,74 @@ components:
           type: integer
           format: int64
           description: Access Token 有效期（秒）
-    RefreshRequest:
+    RefreshParam:
       type: object
       required: [refreshToken]
       properties:
         refreshToken:
           type: string
-    LogoutRequest:
+          description: Refresh Token
+    LogoutParam:
       type: object
-      required: [refreshToken]
       properties:
-        refreshToken:
+        scope:
           type: string
-    EmailCodeRequest:
+          enum: [CURRENT, ALL]
+          default: CURRENT
+          description: |
+            登出范围：
+            - CURRENT: 只登出当前设备（默认）
+            - ALL: 登出所有设备
+    EmailCodeParam:
       type: object
       required: [email, scene]
       properties:
         email:
           type: string
           format: email
+          description: 邮箱地址
         scene:
           type: string
-          enum: [REGISTER, RESET_PASSWORD, BIND]
-    PasswordResetRequest:
+          enum: [REGISTER, RESET_PASSWORD]
+          description: |
+            验证码使用场景：
+            - REGISTER: 用户注册
+            - RESET_PASSWORD: 重置密码
+    PasswordResetParam:
       type: object
-      required: [email, code, newPassword]
+      required: [email, code, newPassword, confirmPassword]
       properties:
         email:
           type: string
           format: email
+          description: 邮箱地址
         code:
           type: string
+          minLength: 6
+          maxLength: 6
+          pattern: '^\d{6}$'
+          description: 邮箱验证码（通过 /api/v1/auth/code/email 获取，场景为 RESET_PASSWORD）
         newPassword:
           type: string
           format: password
-    BindPhoneRequest:
-      type: object
-      required: [phone, code]
-      properties:
-        phone:
+          minLength: 8
+          description: 新密码
+        confirmPassword:
           type: string
-          example: '13800000000'
+          format: password
+          minLength: 8
+          description: 确认新密码（必须与 newPassword 一致）
+    BindLinuxDoParam:
+      type: object
+      required: [code, state]
+      properties:
         code:
           type: string
-          example: '234567'
-    Profile:
+          description: LinuxDo OAuth 返回的授权码
+        state:
+          type: string
+          description: 防 CSRF 的 state 参数
+    ProfileResult:
       type: object
       properties:
         userId:
@@ -349,13 +435,20 @@ components:
         bindings:
           type: array
           items:
-            $ref: '#/components/schemas/AuthBinding'
-    AuthBinding:
+            $ref: "#/components/schemas/AuthBindingResult"
+    AuthBindingResult:
       type: object
       properties:
         type:
           type: string
+          enum: [EMAIL, LINUX_DO]
+          description: 绑定类型
         identifier:
           type: string
+          description: 邮箱地址或 LinuxDo 用户名
         verified:
           type: boolean
+          description: |
+            是否已验证：
+            - EMAIL: 通过验证码验证为 true
+            - LINUX_DO: 始终为 true
