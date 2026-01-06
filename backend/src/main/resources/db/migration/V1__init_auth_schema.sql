@@ -1,11 +1,4 @@
-# 身份认证 SQL 设计
-
-> 本文档基于 `docs/specs/postgresql.md` 的规范，整理可直接用于 Flyway 的 DDL 模板，所有字段均采用 `NOT NULL` 并指定默认值。
-
-## 通用触发器函数
-
-```sql
--- 创建自动更新 updated_at 的触发器函数
+-- Create update_updated_at trigger function
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -13,11 +6,10 @@ BEGIN
    RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
-```
 
-## t_user
-
-```sql
+-- ============================================
+-- Table: t_user
+-- ============================================
 CREATE TABLE t_user (
   id BIGSERIAL PRIMARY KEY,
   nickname VARCHAR(64) NOT NULL DEFAULT '',
@@ -27,7 +19,6 @@ CREATE TABLE t_user (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
--- 添加注释
 COMMENT ON TABLE t_user IS '用户画像';
 COMMENT ON COLUMN t_user.id IS '用户主键';
 COMMENT ON COLUMN t_user.nickname IS '昵称';
@@ -36,16 +27,14 @@ COMMENT ON COLUMN t_user.status IS '状态：ACTIVE=正常 LOCKED=锁定 DELETED
 COMMENT ON COLUMN t_user.created_at IS '创建时间';
 COMMENT ON COLUMN t_user.updated_at IS '更新时间';
 
--- 创建自动更新触发器
 CREATE TRIGGER update_t_user_updated_at
 BEFORE UPDATE ON t_user
 FOR EACH ROW
 EXECUTE FUNCTION update_updated_at_column();
-```
 
-## t_user_auth
-
-```sql
+-- ============================================
+-- Table: t_user_auth
+-- ============================================
 CREATE TABLE t_user_auth (
   id BIGSERIAL PRIMARY KEY,
   user_id BIGINT NOT NULL,
@@ -59,10 +48,8 @@ CREATE TABLE t_user_auth (
   CONSTRAINT uk_t_user_auth_identity UNIQUE (identity_type, identifier)
 );
 
--- 创建索引
 CREATE INDEX idx_t_user_auth_user_id ON t_user_auth (user_id);
 
--- 添加注释
 COMMENT ON TABLE t_user_auth IS '用户认证方式';
 COMMENT ON COLUMN t_user_auth.id IS '记录主键';
 COMMENT ON COLUMN t_user_auth.user_id IS '关联 t_user.id';
@@ -74,16 +61,14 @@ COMMENT ON COLUMN t_user_auth.last_login_at IS '最近登录时间';
 COMMENT ON COLUMN t_user_auth.created_at IS '创建时间';
 COMMENT ON COLUMN t_user_auth.updated_at IS '更新时间';
 
--- 创建自动更新触发器
 CREATE TRIGGER update_t_user_auth_updated_at
 BEFORE UPDATE ON t_user_auth
 FOR EACH ROW
 EXECUTE FUNCTION update_updated_at_column();
-```
 
-## t_verification_code
-
-```sql
+-- ============================================
+-- Table: t_verification_code
+-- ============================================
 CREATE TABLE t_verification_code (
   id BIGSERIAL PRIMARY KEY,
   channel VARCHAR(16) NOT NULL CHECK (channel IN ('EMAIL', 'PHONE')),
@@ -94,12 +79,10 @@ CREATE TABLE t_verification_code (
   created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
--- 创建部分索引（只索引未使用且未过期的验证码）
 CREATE INDEX idx_t_verification_code_active 
   ON t_verification_code (identifier, channel) 
   WHERE used = FALSE AND expire_at > CURRENT_TIMESTAMP;
 
--- 添加注释
 COMMENT ON TABLE t_verification_code IS '验证码审计';
 COMMENT ON COLUMN t_verification_code.id IS '记录主键';
 COMMENT ON COLUMN t_verification_code.channel IS '渠道：EMAIL/PHONE';
@@ -108,11 +91,10 @@ COMMENT ON COLUMN t_verification_code.code IS '验证码';
 COMMENT ON COLUMN t_verification_code.expire_at IS '过期时间';
 COMMENT ON COLUMN t_verification_code.used IS '是否已使用';
 COMMENT ON COLUMN t_verification_code.created_at IS '创建时间';
-```
 
-## t_refresh_token
-
-```sql
+-- ============================================
+-- Table: t_refresh_token
+-- ============================================
 CREATE TABLE t_refresh_token (
   id BIGSERIAL PRIMARY KEY,
   user_id BIGINT NOT NULL,
@@ -123,12 +105,10 @@ CREATE TABLE t_refresh_token (
   CONSTRAINT uk_t_refresh_token_token UNIQUE (token)
 );
 
--- 创建部分索引（只索引未过期的 Token）
 CREATE INDEX idx_t_refresh_token_user_device 
   ON t_refresh_token (user_id, device) 
   WHERE expires_at > CURRENT_TIMESTAMP;
 
--- 添加注释
 COMMENT ON TABLE t_refresh_token IS 'Refresh Token 管理';
 COMMENT ON COLUMN t_refresh_token.id IS '记录主键';
 COMMENT ON COLUMN t_refresh_token.user_id IS '用户 ID';
@@ -136,11 +116,10 @@ COMMENT ON COLUMN t_refresh_token.token IS 'Refresh Token 摘要';
 COMMENT ON COLUMN t_refresh_token.device IS '终端标识';
 COMMENT ON COLUMN t_refresh_token.expires_at IS '过期时间';
 COMMENT ON COLUMN t_refresh_token.created_at IS '创建时间';
-```
 
-## t_login_audit
-
-```sql
+-- ============================================
+-- Table: t_login_audit
+-- ============================================
 CREATE TABLE t_login_audit (
   id BIGSERIAL PRIMARY KEY,
   user_id BIGINT NOT NULL,
@@ -152,11 +131,9 @@ CREATE TABLE t_login_audit (
   created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
--- 创建索引
 CREATE INDEX idx_t_login_audit_user_created ON t_login_audit (user_id, created_at DESC);
 CREATE INDEX idx_t_login_audit_created ON t_login_audit (created_at DESC);
 
--- 添加注释
 COMMENT ON TABLE t_login_audit IS '登录审计';
 COMMENT ON COLUMN t_login_audit.id IS '记录主键';
 COMMENT ON COLUMN t_login_audit.user_id IS '用户 ID';
@@ -166,29 +143,3 @@ COMMENT ON COLUMN t_login_audit.ip IS '登录 IP';
 COMMENT ON COLUMN t_login_audit.user_agent IS 'User Agent';
 COMMENT ON COLUMN t_login_audit.status IS '状态：1=成功 2=失败';
 COMMENT ON COLUMN t_login_audit.created_at IS '登录时间';
-```
-
----
-
-## 设计说明
-
-### 核心特性
-
-- **自动更新时间戳**：使用触发器实现 `updated_at` 字段自动更新
-- **部分索引**：`t_verification_code` 和 `t_refresh_token` 使用部分索引，只索引有效数据
-- **CHECK 约束**：限制枚举值的有效范围
-- **INET 类型**：IP 地址使用原生类型，支持网络运算和查询
-- **BOOLEAN 类型**：布尔字段使用原生类型，语义更明确
-
-### 设计决策
-
-- ✅ **不使用外键约束**：应用层控制关联关系，便于后续分库分表和微服务拆分
-- ✅ **TIMESTAMPTZ**：所有时间字段带时区，避免时区问题
-- ✅ **枚举值策略**：
-  - `t_user.status` 使用 VARCHAR + CHECK（可读性优先）
-  - `t_login_audit.status` 使用 SMALLINT + CHECK（性能优先，数据量大）
-- ✅ **索引优化**：只为活跃数据创建索引，节省空间和提升性能
-
----
-
-> 若需扩展第三方资料（如 LinuxDo 返回的头像、邮箱），可新增 `t_user_oauth_profile`，结构参照上述规范，字段命名与索引遵循相同约定。
