@@ -24,14 +24,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/RegisterParam"
+              $ref: "#/components/schemas/RegisterRequest"
       responses:
         "201":
           description: 注册成功
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/BaseResultRegister"
+                $ref: "#/components/schemas/ApiResponseRegister"
         "400":
           $ref: "#/components/responses/BadRequest"
         "409":
@@ -39,7 +39,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/BaseResultError"
+                $ref: "#/components/schemas/ApiResponseError"
   /api/v1/auth/login:
     post:
       tags: [Auth]
@@ -50,14 +50,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/LoginParam"
+              $ref: "#/components/schemas/LoginRequest"
       responses:
         "200":
           description: 登录成功
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/BaseResultToken"
+                $ref: "#/components/schemas/ApiResponseToken"
         "401":
           $ref: "#/components/responses/Unauthorized"
   /api/v1/auth/token/refresh:
@@ -69,14 +69,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/RefreshParam"
+              $ref: "#/components/schemas/RefreshTokenRequest"
       responses:
         "200":
           description: 刷新成功
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/BaseResultToken"
+                $ref: "#/components/schemas/ApiResponseToken"
         "401":
           $ref: "#/components/responses/Unauthorized"
   /api/v1/auth/logout:
@@ -91,14 +91,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/LogoutParam"
+              $ref: "#/components/schemas/LogoutRequest"
       responses:
         "200":
           description: 登出成功
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/BaseResult"
+                $ref: "#/components/schemas/ApiResponse"
         "401":
           $ref: "#/components/responses/Unauthorized"
   /api/v1/auth/code/email:
@@ -110,20 +110,20 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/EmailCodeParam"
+              $ref: "#/components/schemas/EmailCodeRequest"
       responses:
         "200":
           description: 发送成功
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/BaseResult"
+                $ref: "#/components/schemas/ApiResponse"
         "429":
           description: 触发频率限制
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/BaseResultError"
+                $ref: "#/components/schemas/ApiResponseError"
   /api/v1/auth/password/reset:
     post:
       tags: [Auth]
@@ -133,14 +133,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/PasswordResetParam"
+              $ref: "#/components/schemas/PasswordResetRequest"
       responses:
         "200":
           description: 重置成功
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/BaseResult"
+                $ref: "#/components/schemas/ApiResponse"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -184,7 +184,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/BaseResultToken"
+                $ref: "#/components/schemas/ApiResponseToken"
         "400":
           $ref: "#/components/responses/BadRequest"
   /api/v1/auth/bind/linuxdo:
@@ -199,14 +199,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/BindLinuxDoParam"
+              $ref: "#/components/schemas/BindLinuxDoRequest"
       responses:
         "200":
           description: 绑定成功
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/BaseResult"
+                $ref: "#/components/schemas/ApiResponse"
         "401":
           $ref: "#/components/responses/Unauthorized"
         "409":
@@ -214,7 +214,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/BaseResultError"
+                $ref: "#/components/schemas/ApiResponseError"
   /api/v1/auth/profile:
     get:
       tags: [Auth]
@@ -227,7 +227,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/BaseResultProfile"
+                $ref: "#/components/schemas/ApiResponseProfile"
         "401":
           $ref: "#/components/responses/Unauthorized"
 components:
@@ -242,15 +242,15 @@ components:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/BaseResultError"
+            $ref: "#/components/schemas/ApiResponseError"
     Unauthorized:
       description: 未认证或 Token 已失效
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/BaseResultError"
+            $ref: "#/components/schemas/ApiResponseError"
   schemas:
-    BaseResult:
+    ApiResponse:
       type: object
       required: [code, message]
       properties:
@@ -262,35 +262,35 @@ components:
           example: ok
         data:
           nullable: true
-    BaseResultError:
+    ApiResponseError:
       allOf:
-        - $ref: "#/components/schemas/BaseResult"
+        - $ref: "#/components/schemas/ApiResponse"
       example:
         code: 2004
         message: password error
         data: null
-    BaseResultRegister:
+    ApiResponseRegister:
       allOf:
-        - $ref: "#/components/schemas/BaseResult"
+        - $ref: "#/components/schemas/ApiResponse"
         - type: object
           properties:
             data:
-              $ref: "#/components/schemas/RegisterResult"
-    BaseResultToken:
+              $ref: "#/components/schemas/RegisterResponse"
+    ApiResponseToken:
       allOf:
-        - $ref: "#/components/schemas/BaseResult"
+        - $ref: "#/components/schemas/ApiResponse"
         - type: object
           properties:
             data:
-              $ref: "#/components/schemas/TokenPairResult"
-    BaseResultProfile:
+              $ref: "#/components/schemas/TokenResponse"
+    ApiResponseProfile:
       allOf:
-        - $ref: "#/components/schemas/BaseResult"
+        - $ref: "#/components/schemas/ApiResponse"
         - type: object
           properties:
             data:
-              $ref: "#/components/schemas/ProfileResult"
-    RegisterParam:
+              $ref: "#/components/schemas/ProfileResponse"
+    RegisterRequest:
       type: object
       required: [email, password, code, nickname]
       properties:
@@ -308,13 +308,13 @@ components:
         nickname:
           type: string
           example: DevUser
-    RegisterResult:
+    RegisterResponse:
       type: object
       properties:
         userId:
           type: integer
           format: int64
-    LoginParam:
+    LoginRequest:
       type: object
       required: [identifier, password]
       properties:
@@ -341,7 +341,7 @@ components:
           format: password
           minLength: 8
           description: 登录密码
-    TokenPairResult:
+    TokenResponse:
       type: object
       properties:
         accessToken:
@@ -352,14 +352,14 @@ components:
           type: integer
           format: int64
           description: Access Token 有效期（秒）
-    RefreshParam:
+    RefreshTokenRequest:
       type: object
       required: [refreshToken]
       properties:
         refreshToken:
           type: string
           description: Refresh Token
-    LogoutParam:
+    LogoutRequest:
       type: object
       properties:
         scope:
@@ -370,7 +370,7 @@ components:
             登出范围：
             - CURRENT: 只登出当前设备（默认）
             - ALL: 登出所有设备
-    EmailCodeParam:
+    EmailCodeRequest:
       type: object
       required: [email, scene]
       properties:
@@ -385,7 +385,7 @@ components:
             验证码使用场景：
             - REGISTER: 用户注册
             - RESET_PASSWORD: 重置密码
-    PasswordResetParam:
+    PasswordResetRequest:
       type: object
       required: [email, code, newPassword, confirmPassword]
       properties:
@@ -409,7 +409,7 @@ components:
           format: password
           minLength: 8
           description: 确认新密码（必须与 newPassword 一致）
-    BindLinuxDoParam:
+    BindLinuxDoRequest:
       type: object
       required: [code, state]
       properties:
@@ -419,7 +419,7 @@ components:
         state:
           type: string
           description: 防 CSRF 的 state 参数
-    ProfileResult:
+    ProfileResponse:
       type: object
       properties:
         userId:
@@ -435,8 +435,8 @@ components:
         bindings:
           type: array
           items:
-            $ref: "#/components/schemas/AuthBindingResult"
-    AuthBindingResult:
+            $ref: "#/components/schemas/AuthBindingResponse"
+    AuthBindingResponse:
       type: object
       properties:
         type:

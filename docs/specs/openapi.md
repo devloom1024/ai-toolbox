@@ -8,13 +8,13 @@
 
 ### 1. 请求参数 Model 命名
 
-所有请求参数 Model **必须**以 `Param` 结尾。
+所有请求参数 Model **必须**以 `Request` 结尾，保持与后端 DTO 命名一致。
 
 **示例：**
 ```yaml
 components:
   schemas:
-    RegisterParam:
+    RegisterRequest:
       type: object
       required: [email, password, code, nickname]
       properties:
@@ -25,7 +25,7 @@ components:
           type: string
           format: password
 
-    LoginParam:
+    LoginRequest:
       type: object
       required: [identifier, password]
       properties:
@@ -37,20 +37,20 @@ components:
 
 ### 2. 响应参数 Model 命名
 
-所有响应数据 Model **必须**以 `Result` 结尾。
+所有响应数据 Model **必须**以 `Response` 结尾。
 
 **示例：**
 ```yaml
 components:
   schemas:
-    RegisterResult:
+    RegisterResponse:
       type: object
       properties:
         userId:
           type: integer
           format: int64
 
-    TokenPairResult:
+    TokenResponse:
       type: object
       properties:
         accessToken:
@@ -65,12 +65,12 @@ components:
 
 #### 3.1 基础响应结构
 
-统一的 ApiResponse **必须**为 `BaseResult`，定义基础的响应结构。
+统一的 ApiResponse **必须**为 `ApiResponse`，定义基础的响应结构。
 
 ```yaml
 components:
   schemas:
-    BaseResult:
+    ApiResponse:
       type: object
       required: [code, message]
       properties:
@@ -89,23 +89,23 @@ components:
 
 #### 3.2 错误响应
 
-所有错误相关的 Model **必须**以 `BaseResult` 开头，然后添加具体的错误类型描述。
+所有错误相关的 Model **必须**以 `ApiResponse` 开头，然后添加具体的错误类型描述。
 
 **示例：**
 ```yaml
 components:
   schemas:
-    BaseResultError:
+    ApiResponseError:
       allOf:
-        - $ref: '#/components/schemas/BaseResult'
+        - $ref: '#/components/schemas/ApiResponse'
       example:
         code: 2004
         message: password error
         data: null
 
-    BaseResultValidationError:
+    ApiResponseValidationError:
       allOf:
-        - $ref: '#/components/schemas/BaseResult'
+        - $ref: '#/components/schemas/ApiResponse'
         - type: object
           properties:
             data:
@@ -124,38 +124,38 @@ components:
 
 #### 3.3 成功响应（带数据）
 
-成功响应可以自由命名，但建议使用 `BaseResult` + 业务概念的格式。
+成功响应可以自由命名，但建议使用 `ApiResponse` + 业务概念的格式。
 
 **示例：**
 ```yaml
 components:
   schemas:
-    BaseResultRegister:
+    ApiResponseRegister:
       allOf:
-        - $ref: '#/components/schemas/BaseResult'
+        - $ref: '#/components/schemas/ApiResponse'
         - type: object
           properties:
             data:
-              $ref: '#/components/schemas/RegisterResult'
+              $ref: '#/components/schemas/RegisterResponse'
 
-    BaseResultToken:
+    ApiResponseToken:
       allOf:
-        - $ref: '#/components/schemas/BaseResult'
+        - $ref: '#/components/schemas/ApiResponse'
         - type: object
           properties:
             data:
-              $ref: '#/components/schemas/TokenPairResult'
+              $ref: '#/components/schemas/TokenResponse'
 ```
 
 ## 命名规范总结
 
 | Model 类型 | 命名规则 | 示例 |
 |-----------|---------|------|
-| 请求参数 | 必须以 `Param` 结尾 | `RegisterParam`, `LoginParam` |
-| 响应数据 | 必须以 `Result` 结尾 | `RegisterResult`, `TokenPairResult` |
-| 基础响应 | 必须为 `BaseResult` | `BaseResult` |
-| 错误响应 | 必须以 `BaseResult` 开头 | `BaseResultError`, `BaseResultValidationError` |
-| 成功响应 | 建议以 `BaseResult` 开头 | `BaseResultRegister`, `BaseResultToken` |
+| 请求参数 | 必须以 `Request` 结尾 | `RegisterRequest`, `LoginRequest` |
+| 响应数据 | 必须以 `Response` 结尾 | `RegisterResponse`, `TokenResponse` |
+| 基础响应 | 必须为 `ApiResponse` | `ApiResponse` |
+| 错误响应 | 必须以 `ApiResponse` 开头 | `ApiResponseError`, `ApiResponseValidationError` |
+| 成功响应 | 建议以 `ApiResponse` 开头 | `ApiResponseRegister`, `ApiResponseToken` |
 
 ## 最佳实践
 
@@ -177,20 +177,20 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/RegisterParam'
+              $ref: '#/components/schemas/RegisterRequest'
       responses:
         '201':
           description: 注册成功
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseResultRegister'
+                $ref: '#/components/schemas/ApiResponseRegister'
         '400':
           description: 参数错误
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseResultError'
+                $ref: '#/components/schemas/ApiResponseError'
 ```
 
 ## 版本历史

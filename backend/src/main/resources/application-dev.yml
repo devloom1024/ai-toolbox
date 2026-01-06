@@ -36,3 +36,25 @@ logging:
     org.springframework.web: DEBUG
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+
+app:
+  security:
+    jwt:
+      secret-key: ${JWT_SECRET:dev-secret-change-me}
+      access-token-ttl-seconds: 3600
+      issuer: ai-toolbox
+  auth:
+    verification-code:
+      expire-minutes: 10
+      request-interval-seconds: 60
+    token:
+      refresh-token-ttl-days: 30
+      default-device: WEB
+    linuxdo:
+      client-id: ${LINUXDO_CLIENT_ID:}
+      client-secret: ${LINUXDO_CLIENT_SECRET:}
+      authorize-url: https://linux.do/oauth/authorize
+      token-url: https://linux.do/oauth/token
+      profile-url: https://linux.do/api/profile
+      redirect-base-url: https://app.local/oauth/linuxdo/callback
+      state-ttl-minutes: 5
