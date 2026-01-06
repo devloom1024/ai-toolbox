@@ -23,6 +23,4 @@ public class RegisterRequest {
 
     @NotBlank
     private String nickname;
-
-    private String device;
 }

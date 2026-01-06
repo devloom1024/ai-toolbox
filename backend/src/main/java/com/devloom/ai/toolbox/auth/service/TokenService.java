@@ -10,6 +10,7 @@ import com.devloom.ai.toolbox.common.exception.BizErrorCode;
 import com.devloom.ai.toolbox.common.exception.BizException;
 import com.devloom.ai.toolbox.common.security.JwtTokenProvider;
 import com.devloom.ai.toolbox.common.util.RandomUtil;
+import com.devloom.ai.toolbox.common.web.DeviceContextHolder;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -28,8 +29,8 @@ public class TokenService {
     private final Clock clock;
 
     @Transactional
-    public TokenResponse issueTokenPair(UserEntity user, String device) {
-        String normalizedDevice = normalizeDevice(device);
+    public TokenResponse issueTokenPair(UserEntity user) {
+        String normalizedDevice = normalizeDevice(DeviceContextHolder.getDeviceId());
         refreshTokenRepository.deleteByUserAndDevice(user, normalizedDevice);
         String refreshTokenValue = RandomUtil.randomHex(32);
         Instant now = clock.instant();
@@ -55,11 +56,11 @@ public class TokenService {
     }
 
     @Transactional
-    public void revoke(UserEntity user, LogoutScope scope, String device) {
+    public void revoke(UserEntity user, LogoutScope scope) {
         if (scope == LogoutScope.ALL) {
             refreshTokenRepository.deleteByUser(user);
         } else {
-            refreshTokenRepository.deleteByUserAndDevice(user, normalizeDevice(device));
+            refreshTokenRepository.deleteByUserAndDevice(user, normalizeDevice(DeviceContextHolder.getDeviceId()));
         }
     }
 

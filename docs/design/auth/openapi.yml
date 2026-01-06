@@ -149,7 +149,7 @@ paths:
     get:
       tags: [Auth]
       summary: LinuxDo OAuth 授权
-      description: 重定向到 LinuxDo OAuth 授权页面，开始登录流程
+      description: 生成授权链接和 state，供前端跳转至 LinuxDo OAuth 授权页面
       parameters:
         - name: redirect_uri
           in: query
@@ -158,8 +158,12 @@ paths:
             type: string
           description: 登录成功后的前端跳转地址
       responses:
-        "302":
-          description: 重定向到 LinuxDo OAuth 授权页面
+        "200":
+          description: 生成授权链接
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseLinuxDoAuthorize"
   /api/v1/auth/oauth/linuxdo/callback:
     get:
       tags: [Auth]
@@ -290,6 +294,13 @@ components:
           properties:
             data:
               $ref: "#/components/schemas/ProfileResponse"
+    ApiResponseLinuxDoAuthorize:
+      allOf:
+        - $ref: "#/components/schemas/ApiResponse"
+        - type: object
+          properties:
+            data:
+              $ref: "#/components/schemas/LinuxDoAuthorizeResponse"
     RegisterRequest:
       type: object
       required: [email, password, code, nickname]
@@ -452,3 +463,12 @@ components:
             是否已验证：
             - EMAIL: 通过验证码验证为 true
             - LINUX_DO: 始终为 true
+    LinuxDoAuthorizeResponse:
+      type: object
+      properties:
+        state:
+          type: string
+          description: 服务端生成的 state 参数
+        authorizeUrl:
+          type: string
+          description: 前端使用的 LinuxDo 授权链接

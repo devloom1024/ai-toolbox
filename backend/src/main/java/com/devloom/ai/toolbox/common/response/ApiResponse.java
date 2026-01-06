@@ -22,6 +22,10 @@ public class ApiResponse<T> {
         return success("ok", data);
     }
 
+    public static ApiResponse<Void> success() {
+        return success(null);
+    }
+
     public static <T> ApiResponse<T> error(int code, String message) {
         return new ApiResponse<>(code, message, null);
     }

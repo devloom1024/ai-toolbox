@@ -66,7 +66,7 @@ public class AuthApplicationService {
                 .verified(true)
                 .build();
         userAuthRepository.save(auth);
-        TokenResponse token = tokenService.issueTokenPair(user, request.getDevice());
+        TokenResponse token = tokenService.issueTokenPair(user);
         return RegisterResponse.builder().userId(user.getId()).token(token).build();
     }
 
@@ -93,7 +93,7 @@ public class AuthApplicationService {
         auth.setLastLoginAt(clock.instant());
         userAuthRepository.save(auth);
         recordLogin(user, identityType, identifier, ip, userAgent, LoginStatus.SUCCESS);
-        return tokenService.issueTokenPair(user, request.getDevice());
+        return tokenService.issueTokenPair(user);
     }
 
     @Transactional
@@ -102,11 +102,11 @@ public class AuthApplicationService {
     }
 
     @Transactional
-    public void logout(Long userId, LogoutRequest request, String device) {
+    public void logout(Long userId, LogoutRequest request) {
         UserEntity currentUser = userRepository.findById(userId)
                 .orElseThrow(() -> new BizException(BizErrorCode.RESOURCE_NOT_FOUND));
         LogoutScope scope = request.getScope() == null ? LogoutScope.CURRENT : request.getScope();
-        tokenService.revoke(currentUser, scope, device);
+        tokenService.revoke(currentUser, scope);
     }
 
     @Transactional
