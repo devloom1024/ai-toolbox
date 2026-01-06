@@ -7,14 +7,19 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * 请求邮箱验证码参数。
+ */
 @Getter
 @Setter
 public class EmailCodeRequest {
 
+    /** 接收验证码的邮箱。 */
     @Email
     @NotBlank
     private String email;
 
+    /** 业务场景，例如注册或重置密码。 */
     @NotNull
     private VerificationScene scene;
 }

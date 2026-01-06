@@ -7,22 +7,29 @@ import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * 重置密码请求参数。
+ */
 @Getter
 @Setter
 public class PasswordResetRequest {
 
+    /** 绑定账号的邮箱。 */
     @Email
     @NotBlank
     private String email;
 
+    /** 邮箱验证码，6 位数字。 */
     @NotBlank
     @Pattern(regexp = "\\d{6}")
     private String code;
 
+    /** 新密码。 */
     @NotBlank
     @Size(min = 8, max = 64)
     private String newPassword;
 
+    /** 新密码确认。 */
     @NotBlank
     @Size(min = 8, max = 64)
     private String confirmPassword;

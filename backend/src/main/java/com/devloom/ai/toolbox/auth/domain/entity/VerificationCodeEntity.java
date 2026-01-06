@@ -17,6 +17,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+/**
+ * t_verification_code 保存验证码记录。
+ */
 @Getter
 @Setter
 @Builder
@@ -26,25 +29,33 @@ import lombok.Setter;
 @Table(name = "t_verification_code")
 public class VerificationCodeEntity {
 
+    /** 主键 ID。 */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    /** 渠道，目前仅 EMAIL。 */
     @Enumerated(EnumType.STRING)
     private VerificationChannel channel;
 
+    /** 使用场景：REGISTER / RESET_PASSWORD。 */
     @Enumerated(EnumType.STRING)
     private VerificationScene scene;
 
+    /** 标识符（邮箱地址）。 */
     private String identifier;
 
+    /** 验证码内容。 */
     private String code;
 
+    /** 过期时间。 */
     @Column(name = "expire_at")
     private Instant expireAt;
 
+    /** 是否已使用。 */
     private boolean used;
 
+    /** 创建时间。 */
     @Column(name = "created_at", insertable = false, updatable = false)
     private Instant createdAt;
 }

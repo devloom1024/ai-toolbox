@@ -4,5 +4,8 @@
 - 设备标识（如 `X-Device-Id`）统一由 `DeviceContextFilter` 注入 `DeviceContextHolder`，Controller 不要使用 `@RequestHeader` 读取设备号。
 - OpenAPI Schema 命名遵循 `docs/specs/openapi.md` 中的 `*Request/*Response` 规则，确保与后端 DTO 保持一致。
 - LinuxDo OAuth authorize 接口返回 `ApiResponse<LinuxDoAuthorizeResponse>`（包含 `state` 与 `authorizeUrl`），不再由后端直接发起 302 重定向。
+- Controller 的每个方法必须编写注释说明用途；所有入参 DTO 与返回 DTO 的字段都要有注释。
+- 仓储层的 Entity 字段必须写明含义，与 `db/migration` 中的表结构保持一致。
+- 所有枚举类型需要补充注释，说明各枚举值的语义。
 
 如有新的后端约束或架构决策，请在此补充，方便团队统一执行。
