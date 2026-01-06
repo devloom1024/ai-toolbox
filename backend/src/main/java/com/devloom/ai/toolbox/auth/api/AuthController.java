@@ -121,7 +121,8 @@ public class AuthController {
      */
     @GetMapping("/oauth/linuxdo/callback")
     public ApiResponse<TokenResponse> linuxDoCallback(
-            @RequestParam("code") @NotBlank String code, @RequestParam("state") @NotBlank String state) {
+            @RequestParam("code") @NotBlank(message = "{validation.oauth.code.required}") String code,
+            @RequestParam("state") @NotBlank(message = "{validation.oauth.state.required}") String state) {
         TokenResponse response = linuxDoOAuthService.handleCallback(code, state);
         return ApiResponse.success(response);
     }

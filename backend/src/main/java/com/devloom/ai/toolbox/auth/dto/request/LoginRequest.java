@@ -14,14 +14,14 @@ import lombok.Setter;
 public class LoginRequest {
 
     /** 登录标识，目前仅支持邮箱地址。 */
-    @NotBlank
+    @NotBlank(message = "{validation.identifier.required}")
     private String identifier;
 
     /** 登录类型，默认为 EMAIL，预留扩展。 */
     private IdentityType type = IdentityType.EMAIL;
 
     /** 登录密码，需满足最小长度。 */
-    @NotBlank
-    @Size(min = 8, max = 64)
+    @NotBlank(message = "{validation.password.required}")
+    @Size(min = 8, max = 64, message = "{validation.password.length}")
     private String password;
 }

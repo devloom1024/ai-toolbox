@@ -12,10 +12,10 @@ import lombok.Setter;
 public class BindLinuxDoRequest {
 
     /** LinuxDo OAuth 返回的授权码。 */
-    @NotBlank
+    @NotBlank(message = "{validation.oauth.code.required}")
     private String code;
 
     /** 与 authorize 响应对应的 state。 */
-    @NotBlank
+    @NotBlank(message = "{validation.oauth.state.required}")
     private String state;
 }

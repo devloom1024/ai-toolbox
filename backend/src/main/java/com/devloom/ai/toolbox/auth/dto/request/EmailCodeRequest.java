@@ -15,11 +15,11 @@ import lombok.Setter;
 public class EmailCodeRequest {
 
     /** 接收验证码的邮箱。 */
-    @Email
-    @NotBlank
+    @Email(message = "{validation.email.invalid}")
+    @NotBlank(message = "{validation.email.required}")
     private String email;
 
     /** 业务场景，例如注册或重置密码。 */
-    @NotNull
+    @NotNull(message = "{validation.scene.required}")
     private VerificationScene scene;
 }

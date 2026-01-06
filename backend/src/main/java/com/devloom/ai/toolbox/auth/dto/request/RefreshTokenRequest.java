@@ -12,6 +12,6 @@ import lombok.Setter;
 public class RefreshTokenRequest {
 
     /** 长期凭证 Refresh Token。 */
-    @NotBlank
+    @NotBlank(message = "{validation.refresh-token.required}")
     private String refreshToken;
 }

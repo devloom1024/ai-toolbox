@@ -14,20 +14,20 @@ import lombok.Setter;
 public class RegisterRequest {
 
     /** 用户邮箱，必须合法且唯一。 */
-    @Email
-    @NotBlank
+    @Email(message = "{validation.email.invalid}")
+    @NotBlank(message = "{validation.email.required}")
     private String email;
 
     /** 登录密码，8-64 位。 */
-    @NotBlank
-    @Size(min = 8, max = 64)
+    @NotBlank(message = "{validation.password.required}")
+    @Size(min = 8, max = 64, message = "{validation.password.length}")
     private String password;
 
     /** 邮箱验证码，来自 /api/v1/auth/code/email。 */
-    @NotBlank
+    @NotBlank(message = "{validation.code.required}")
     private String code;
 
     /** 用户昵称。 */
-    @NotBlank
+    @NotBlank(message = "{validation.nickname.required}")
     private String nickname;
 }

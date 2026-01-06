@@ -7,5 +7,7 @@
 - Controller 的每个方法必须编写注释说明用途；所有入参 DTO 与返回 DTO 的字段都要有注释。
 - 仓储层的 Entity 字段必须写明含义，与 `db/migration` 中的表结构保持一致。
 - 所有枚举类型需要补充注释，说明各枚举值的语义。
+- Bean Validation 注解（如 `@NotBlank(message = "...")`）的 `message` 不得为空，且必须引用国际化资源键。
+- 所有通过接口返回的 message（包括异常、业务提示等）必须支持国际化，统一从 `messages/*.properties` 读取。
 
 如有新的后端约束或架构决策，请在此补充，方便团队统一执行。
