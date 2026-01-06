@@ -81,8 +81,8 @@ CREATE TABLE t_verification_code (
 );
 
 CREATE INDEX idx_t_verification_code_active 
-  ON t_verification_code (identifier, channel, scene) 
-  WHERE used = FALSE AND expire_at > CURRENT_TIMESTAMP;
+  ON t_verification_code (identifier, channel, scene, expire_at) 
+  WHERE used = FALSE;
 
 COMMENT ON TABLE t_verification_code IS '验证码审计';
 COMMENT ON COLUMN t_verification_code.id IS '记录主键';
@@ -100,7 +100,7 @@ COMMENT ON COLUMN t_verification_code.created_at IS '创建时间';
 CREATE TABLE t_refresh_token (
   id BIGSERIAL PRIMARY KEY,
   user_id BIGINT NOT NULL,
-  token CHAR(64) NOT NULL,
+  token VARCHAR(64) NOT NULL,
   device VARCHAR(64) NOT NULL DEFAULT '',
   expires_at TIMESTAMPTZ NOT NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -108,13 +108,11 @@ CREATE TABLE t_refresh_token (
 );
 
 CREATE INDEX idx_t_refresh_token_user_device 
-  ON t_refresh_token (user_id, device) 
-  WHERE expires_at > CURRENT_TIMESTAMP;
+  ON t_refresh_token (user_id, device, expires_at);
 
--- Ensure one valid token per user per device
+-- Ensure one token per user per device (service layer should prune expired rows)
 CREATE UNIQUE INDEX uk_t_refresh_token_user_device
-  ON t_refresh_token (user_id, device)
-  WHERE expires_at > CURRENT_TIMESTAMP;
+  ON t_refresh_token (user_id, device);
 
 COMMENT ON TABLE t_refresh_token IS 'Refresh Token 管理';
 COMMENT ON COLUMN t_refresh_token.id IS '记录主键';

@@ -5,15 +5,15 @@ import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 
 @Converter(autoApply = true)
-public class LoginStatusConverter implements AttributeConverter<LoginStatus, Integer> {
+public class LoginStatusConverter implements AttributeConverter<LoginStatus, Short> {
 
     @Override
-    public Integer convertToDatabaseColumn(LoginStatus status) {
-        return status == null ? null : status.getValue();
+    public Short convertToDatabaseColumn(LoginStatus status) {
+        return status == null ? null : (short) status.getValue();
     }
 
     @Override
-    public LoginStatus convertToEntityAttribute(Integer value) {
+    public LoginStatus convertToEntityAttribute(Short value) {
         if (value == null) {
             return null;
         }

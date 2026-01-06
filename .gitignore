@@ -1,1 +1,4 @@
 .idea
+
+# Local backend env configuration file (copy from .env.example)
+backend/.env

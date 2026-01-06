@@ -219,6 +219,12 @@ SELECT id, nickname, status FROM t_user WHERE status = 'ACTIVE';
   ```
 - 需要 `gen_random_uuid()` 函数（PostgreSQL 13+ 默认可用）。
 
+### ORM/JPA 映射注意事项
+- **DDL 与实体字段保持严格一致**：PostgreSQL 特有类型（如 `INET`、`JSONB`）在 Hibernate 中需要 `@JdbcTypeCode` 或 `columnDefinition` 显式声明，否则 Schema 校验会报错。
+- **枚举 + SMALLINT**：如果表结构使用 SMALLINT 存储枚举值，`AttributeConverter` 的返回类型必须是 `Short`，并在字段上标注 `columnDefinition = "smallint"` 以免 JPA 按 `INTEGER` 解析。
+- **优先使用 VARCHAR**：除非确有必要，不要在 DDL 中使用 `CHAR(n)`；定长字符串容易被 Hibernate 判定为 `bpchar`，与 `String` 的默认 `VARCHAR` 映射不兼容。
+- **部分索引只使用 IMMUTABLE 表达式**：WHERE 子句中禁止出现 `CURRENT_TIMESTAMP` 等 STABLE/ VOLATILE 函数；如果需要基于时间过滤，可把时间列纳入索引并通过业务逻辑清理过期数据。
+
 ---
 
 ## 索引与性能
@@ -249,10 +255,11 @@ SELECT id, nickname, status FROM t_user WHERE status = 'ACTIVE';
   
   -- 只索引未使用的验证码
   CREATE INDEX idx_verification_unused 
-    ON t_verification_code (identifier, channel) 
-    WHERE used = FALSE AND expire_at > CURRENT_TIMESTAMP;
+    ON t_verification_code (identifier, channel, expire_at) 
+    WHERE used = FALSE;
   ```
 - 优势：节省空间，提升查询速度。
+- 注意：WHERE 子句只能包含 **IMMUTABLE** 表达式。`CURRENT_TIMESTAMP` 等 STABLE/ VOLATILE 函数会导致索引创建失败。若需要按时间过滤，应将时间字段本身纳入索引，并由业务或任务定期清理过期数据。
 
 ### 表达式索引
 - 对函数或表达式结果建立索引：
@@ -648,4 +655,3 @@ PostgreSQL 核心优势：
 - ⚡ 大表使用分区表设计
 
 > 若业务场景有特殊需求，可在评审通过后另行补充，但不得违反以上底线要求。
-

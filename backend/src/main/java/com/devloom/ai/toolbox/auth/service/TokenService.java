@@ -11,13 +11,14 @@ import com.devloom.ai.toolbox.common.exception.BizException;
 import com.devloom.ai.toolbox.common.security.JwtTokenProvider;
 import com.devloom.ai.toolbox.common.util.RandomUtil;
 import com.devloom.ai.toolbox.common.web.DeviceContextHolder;
-import java.time.Clock;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+
+import java.time.Clock;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 
 @Service
 @RequiredArgsConstructor
@@ -52,15 +53,15 @@ public class TokenService {
                 .findByTokenAndExpiresAtAfter(refreshTokenValue, now)
                 .orElseThrow(() -> new BizException(BizErrorCode.REFRESH_TOKEN_INVALID));
         refreshTokenRepository.delete(refreshToken);
-        return issueTokenPair(refreshToken.getUser(), refreshToken.getDevice());
+        return issueTokenPair(refreshToken.getUser());
     }
 
     @Transactional
-    public void revoke(UserEntity user, LogoutScope scope) {
+    public void revoke(UserEntity user, LogoutScope scope, String device) {
         if (scope == LogoutScope.ALL) {
             refreshTokenRepository.deleteByUser(user);
         } else {
-            refreshTokenRepository.deleteByUserAndDevice(user, normalizeDevice(DeviceContextHolder.getDeviceId()));
+            refreshTokenRepository.deleteByUserAndDevice(user, normalizeDevice(device));
         }
     }
 

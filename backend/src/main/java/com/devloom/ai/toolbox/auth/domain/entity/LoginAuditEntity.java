@@ -19,6 +19,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 /**
  * t_login_audit 登录审计。
@@ -51,7 +53,8 @@ public class LoginAuditEntity {
     private String identifier;
 
     /** 登录 IP。 */
-    @Column(name = "ip")
+    @JdbcTypeCode(SqlTypes.INET)
+    @Column(name = "ip", columnDefinition = "inet")
     private String ip;
 
     /** User-Agent。 */
@@ -59,6 +62,7 @@ public class LoginAuditEntity {
     private String userAgent;
 
     /** 登录状态：成功或失败。 */
+    @Column(name = "status", columnDefinition = "smallint")
     private LoginStatus status;
 
     /** 登录时间。 */

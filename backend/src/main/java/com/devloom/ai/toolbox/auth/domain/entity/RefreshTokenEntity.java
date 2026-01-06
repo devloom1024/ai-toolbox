@@ -39,6 +39,7 @@ public class RefreshTokenEntity {
     private UserEntity user;
 
     /** Refresh Token 值（哈希）。 */
+    @Column(name = "token", length = 64)
     private String token;
 
     /** 设备标识。 */

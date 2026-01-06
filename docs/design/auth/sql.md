@@ -95,10 +95,10 @@ CREATE TABLE t_verification_code (
   created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
--- 创建部分索引（只索引未使用且未过期的验证码）
+-- 创建部分索引（只索引未使用的验证码，按 expire_at 过滤）
 CREATE INDEX idx_t_verification_code_active 
-  ON t_verification_code (identifier, channel, scene) 
-  WHERE used = FALSE AND expire_at > CURRENT_TIMESTAMP;
+  ON t_verification_code (identifier, channel, scene, expire_at) 
+  WHERE used = FALSE;
 
 -- 添加注释
 COMMENT ON TABLE t_verification_code IS '验证码审计';
@@ -118,22 +118,20 @@ COMMENT ON COLUMN t_verification_code.created_at IS '创建时间';
 CREATE TABLE t_refresh_token (
   id BIGSERIAL PRIMARY KEY,
   user_id BIGINT NOT NULL,
-  token CHAR(64) NOT NULL,
+  token VARCHAR(64) NOT NULL,
   device VARCHAR(64) NOT NULL DEFAULT '',
   expires_at TIMESTAMPTZ NOT NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT uk_t_refresh_token_token UNIQUE (token)
 );
 
--- 创建部分索引（只索引未过期的 Token）
+-- 创建部分索引（索引 user_id + device + expires_at，业务侧清理过期 Token）
 CREATE INDEX idx_t_refresh_token_user_device 
-  ON t_refresh_token (user_id, device) 
-  WHERE expires_at > CURRENT_TIMESTAMP;
+  ON t_refresh_token (user_id, device, expires_at);
 
 -- 确保同一用户在同一设备上只有一个有效的 Refresh Token
 CREATE UNIQUE INDEX uk_t_refresh_token_user_device
-  ON t_refresh_token (user_id, device)
-  WHERE expires_at > CURRENT_TIMESTAMP;
+  ON t_refresh_token (user_id, device);
 
 -- 添加注释
 COMMENT ON TABLE t_refresh_token IS 'Refresh Token 管理';
@@ -228,7 +226,7 @@ COMMENT ON COLUMN t_login_audit.created_at IS '登录时间';
 ### 核心特性
 
 - **自动更新时间戳**：使用触发器实现 `updated_at` 字段自动更新
-- **部分索引**：`t_verification_code` 和 `t_refresh_token` 使用部分索引，只索引有效数据
+- **部分索引**：`t_verification_code` 和 `t_refresh_token` 通过部分索引 + 业务层清理实现只索引有效记录，避免在索引条件中使用 `CURRENT_TIMESTAMP` 等非 IMMUTABLE 函数
 - **CHECK 约束**：限制枚举值的有效范围
 - **INET 类型**：IP 地址使用原生类型，支持网络运算和查询
 - **BOOLEAN 类型**：布尔字段使用原生类型，语义更明确

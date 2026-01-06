@@ -2,7 +2,7 @@ package com.devloom.ai.toolbox.common.web;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.springframework.util.StringUtils;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)

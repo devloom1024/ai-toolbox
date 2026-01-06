@@ -27,6 +27,8 @@ import java.time.Clock;
 import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
+
+import com.devloom.ai.toolbox.common.web.DeviceContextHolder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -106,7 +108,7 @@ public class AuthApplicationService {
         UserEntity currentUser = userRepository.findById(userId)
                 .orElseThrow(() -> new BizException(BizErrorCode.RESOURCE_NOT_FOUND));
         LogoutScope scope = request.getScope() == null ? LogoutScope.CURRENT : request.getScope();
-        tokenService.revoke(currentUser, scope);
+        tokenService.revoke(currentUser, scope, DeviceContextHolder.getDeviceId());
     }
 
     @Transactional

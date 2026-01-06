@@ -1,8 +1,8 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/ai_toolbox
-    username: app_user
-    password: secret
+    url: jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 20
@@ -28,6 +28,13 @@ spring:
     enabled: true
     locations: classpath:db/migration
     baseline-on-migrate: true
+  
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+      username: ${REDIS_USERNAME:default}
+      password: ${REDIS_PASSWORD}
 
 logging:
   level:
@@ -40,7 +47,7 @@ logging:
 app:
   security:
     jwt:
-      secret-key: ${JWT_SECRET:dev-secret-change-me}
+      secret-key: ${JWT_SECRET}
       access-token-ttl-seconds: 3600
       issuer: ai-toolbox
   auth:
@@ -51,8 +58,8 @@ app:
       refresh-token-ttl-days: 30
       default-device: WEB
     linuxdo:
-      client-id: ${LINUXDO_CLIENT_ID:}
-      client-secret: ${LINUXDO_CLIENT_SECRET:}
+      client-id: ${LINUXDO_CLIENT_ID}
+      client-secret: ${LINUXDO_CLIENT_SECRET}
       authorize-url: https://linux.do/oauth/authorize
       token-url: https://linux.do/oauth/token
       profile-url: https://linux.do/api/profile

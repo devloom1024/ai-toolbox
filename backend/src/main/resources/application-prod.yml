@@ -1,7 +1,7 @@
 spring:
   datasource:
-    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:ai_toolbox}
-    username: ${DB_USERNAME:app_user}
+    url: jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}
+    username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
     hikari:
@@ -28,6 +28,13 @@ spring:
     enabled: true
     locations: classpath:db/migration
     baseline-on-migrate: false
+  
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+      username: ${REDIS_USERNAME:default}
+      password: ${REDIS_PASSWORD}
 
 logging:
   level:
@@ -47,20 +54,20 @@ app:
   security:
     jwt:
       secret-key: ${JWT_SECRET}
-      access-token-ttl-seconds: ${ACCESS_TOKEN_TTL:3600}
+      access-token-ttl-seconds: ${ACCESS_TOKEN_TTL}
       issuer: ai-toolbox
   auth:
     verification-code:
-      expire-minutes: ${VCODE_EXPIRE_MINUTES:10}
-      request-interval-seconds: ${VCODE_INTERVAL_SECONDS:60}
+      expire-minutes: ${VCODE_EXPIRE_MINUTES}
+      request-interval-seconds: ${VCODE_INTERVAL_SECONDS}
     token:
-      refresh-token-ttl-days: ${REFRESH_TOKEN_TTL_DAYS:30}
-      default-device: ${DEFAULT_DEVICE:WEB}
+      refresh-token-ttl-days: ${REFRESH_TOKEN_TTL_DAYS}
+      default-device: ${DEFAULT_DEVICE}
     linuxdo:
-      client-id: ${LINUXDO_CLIENT_ID:}
-      client-secret: ${LINUXDO_CLIENT_SECRET:}
-      authorize-url: ${LINUXDO_AUTHORIZE_URL:https://linux.do/oauth/authorize}
-      token-url: ${LINUXDO_TOKEN_URL:https://linux.do/oauth/token}
-      profile-url: ${LINUXDO_PROFILE_URL:https://linux.do/api/profile}
-      redirect-base-url: ${LINUXDO_REDIRECT_BASE_URL:https://app.example.com/oauth/linuxdo/callback}
-      state-ttl-minutes: ${LINUXDO_STATE_TTL:5}
+      client-id: ${LINUXDO_CLIENT_ID}
+      client-secret: ${LINUXDO_CLIENT_SECRET}
+      authorize-url: ${LINUXDO_AUTHORIZE_URL}
+      token-url: ${LINUXDO_TOKEN_URL}
+      profile-url: ${LINUXDO_PROFILE_URL}
+      redirect-base-url: ${LINUXDO_REDIRECT_BASE_URL}
+      state-ttl-minutes: ${LINUXDO_STATE_TTL}
