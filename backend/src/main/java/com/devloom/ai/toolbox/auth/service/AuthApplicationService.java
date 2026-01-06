@@ -47,7 +47,7 @@ public class AuthApplicationService {
     private final PasswordEncoder passwordEncoder;
     private final Clock clock;
 
-    @Transactional
+    @Transactional(rollbackFor = {Exception.class, Error.class})
     public RegisterResponse register(RegisterRequest request) {
         String email = normalizeEmail(request.getEmail());
         if (userAuthRepository.existsByIdentityTypeAndIdentifier(IdentityType.EMAIL, email)) {
@@ -72,7 +72,7 @@ public class AuthApplicationService {
         return RegisterResponse.builder().userId(user.getId()).token(token).build();
     }
 
-    @Transactional
+    @Transactional(rollbackFor = {Exception.class, Error.class})
     public TokenResponse login(LoginRequest request, String ip, String userAgent) {
         IdentityType identityType = request.getType() == null ? IdentityType.EMAIL : request.getType();
         String identifier = normalizeIdentifier(identityType, request.getIdentifier());
@@ -98,12 +98,12 @@ public class AuthApplicationService {
         return tokenService.issueTokenPair(user);
     }
 
-    @Transactional
+    @Transactional(rollbackFor = {Exception.class, Error.class})
     public TokenResponse refreshToken(RefreshTokenRequest request) {
         return tokenService.refresh(request.getRefreshToken());
     }
 
-    @Transactional
+    @Transactional(rollbackFor = {Exception.class, Error.class})
     public void logout(Long userId, LogoutRequest request) {
         UserEntity currentUser = userRepository.findById(userId)
                 .orElseThrow(() -> new BizException(BizErrorCode.RESOURCE_NOT_FOUND));
@@ -111,12 +111,12 @@ public class AuthApplicationService {
         tokenService.revoke(currentUser, scope, DeviceContextHolder.getDeviceId());
     }
 
-    @Transactional
+    @Transactional(rollbackFor = {Exception.class, Error.class})
     public void requestEmailCode(EmailCodeRequest request) {
         verificationCodeService.requestEmailCode(request);
     }
 
-    @Transactional
+    @Transactional(rollbackFor = {Exception.class, Error.class})
     public void resetPassword(PasswordResetRequest request) {
         if (!request.getNewPassword().equals(request.getConfirmPassword())) {
             throw new BizException(BizErrorCode.PASSWORD_MISMATCH);
@@ -131,7 +131,7 @@ public class AuthApplicationService {
         tokenService.revoke(auth.getUser(), LogoutScope.ALL, null);
     }
 
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = true, rollbackFor = {Exception.class, Error.class})
     public ProfileResponse profile(Long userId) {
         UserEntity user = userRepository.findById(userId)
                 .orElseThrow(() -> new BizException(BizErrorCode.RESOURCE_NOT_FOUND));

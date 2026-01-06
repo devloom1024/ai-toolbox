@@ -11,5 +11,7 @@
 - 所有枚举类型需要补充注释，说明各枚举值的语义。
 - Bean Validation 注解（如 `@NotBlank(message = "...")`）的 `message` 不得为空，且必须引用国际化资源键。
 - 所有通过接口返回的 message（包括异常、业务提示等）必须支持国际化，统一从 `messages/*.properties` 读取。
+- Service 层使用 `@Transactional` 时必须显式声明 `rollbackFor = {Exception.class, Error.class}`，避免受检异常或 `Error` 无法触发回滚；
+- 严禁在同一个 Spring Bean 内通过 `this` 或直接调用方式触发另一个带 `@Transactional` 的方法，否则事务代理不会生效；如需复用逻辑，请通过注入自身代理或抽取到独立组件。
 
 如有新的后端约束或架构决策，请在此补充，方便团队统一执行。

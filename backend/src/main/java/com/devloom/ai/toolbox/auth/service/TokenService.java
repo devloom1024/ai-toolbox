@@ -29,8 +29,31 @@ public class TokenService {
     private final AuthProperties authProperties;
     private final Clock clock;
 
-    @Transactional
+    @Transactional(rollbackFor = {Exception.class, Error.class})
     public TokenResponse issueTokenPair(UserEntity user) {
+        return createTokenPair(user);
+    }
+
+    @Transactional(rollbackFor = {Exception.class, Error.class})
+    public TokenResponse refresh(String refreshTokenValue) {
+        Instant now = clock.instant();
+        RefreshTokenEntity refreshToken = refreshTokenRepository
+                .findByTokenAndExpiresAtAfter(refreshTokenValue, now)
+                .orElseThrow(() -> new BizException(BizErrorCode.REFRESH_TOKEN_INVALID));
+        refreshTokenRepository.delete(refreshToken);
+        return createTokenPair(refreshToken.getUser());
+    }
+
+    @Transactional(rollbackFor = {Exception.class, Error.class})
+    public void revoke(UserEntity user, LogoutScope scope, String device) {
+        if (scope == LogoutScope.ALL) {
+            refreshTokenRepository.deleteByUser(user);
+        } else {
+            refreshTokenRepository.deleteByUserAndDevice(user, normalizeDevice(device));
+        }
+    }
+
+    private TokenResponse createTokenPair(UserEntity user) {
         String normalizedDevice = normalizeDevice(DeviceContextHolder.getDeviceId());
         refreshTokenRepository.deleteByUserAndDevice(user, normalizedDevice);
         String refreshTokenValue = RandomUtil.randomHex(32);
@@ -44,25 +67,6 @@ public class TokenService {
         refreshTokenRepository.save(refreshToken);
         String accessToken = jwtTokenProvider.generateAccessToken(user.getId(), user.getNickname());
         return new TokenResponse(accessToken, refreshTokenValue, jwtTokenProvider.getAccessTokenTtlSeconds());
-    }
-
-    @Transactional
-    public TokenResponse refresh(String refreshTokenValue) {
-        Instant now = clock.instant();
-        RefreshTokenEntity refreshToken = refreshTokenRepository
-                .findByTokenAndExpiresAtAfter(refreshTokenValue, now)
-                .orElseThrow(() -> new BizException(BizErrorCode.REFRESH_TOKEN_INVALID));
-        refreshTokenRepository.delete(refreshToken);
-        return issueTokenPair(refreshToken.getUser());
-    }
-
-    @Transactional
-    public void revoke(UserEntity user, LogoutScope scope, String device) {
-        if (scope == LogoutScope.ALL) {
-            refreshTokenRepository.deleteByUser(user);
-        } else {
-            refreshTokenRepository.deleteByUserAndDevice(user, normalizeDevice(device));
-        }
     }
 
     private String normalizeDevice(String device) {

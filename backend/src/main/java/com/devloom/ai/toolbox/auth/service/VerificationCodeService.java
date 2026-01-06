@@ -27,7 +27,7 @@ public class VerificationCodeService {
     private final AuthProperties authProperties;
     private final Clock clock;
 
-    @Transactional
+    @Transactional(rollbackFor = {Exception.class, Error.class})
     public void requestEmailCode(EmailCodeRequest request) {
         Instant now = clock.instant();
         AuthProperties.VerificationCodeProperties props = authProperties.getVerificationCode();
@@ -51,7 +51,7 @@ public class VerificationCodeService {
         mailClient.sendVerificationCode(email, code, request.getScene());
     }
 
-    @Transactional
+    @Transactional(rollbackFor = {Exception.class, Error.class})
     public void verifyAndConsume(String email, VerificationScene scene, String code) {
         String normalizedEmail = normalize(email);
         VerificationCodeEntity verification = verificationCodeRepository
