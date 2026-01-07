@@ -1,5 +1,13 @@
-import { AppSidebar } from "@/components/app-sidebar"
-import { LanguageToggle } from "@/components/language-toggle"
+/**
+ * 主页面组件
+ * 客户端组件 - 使用 SWR 从 SpringBoot API 获取数据
+ */
+
+"use client";
+
+import useSWR from "swr";
+import { AppSidebar } from "@/components/app-sidebar";
+import { LanguageToggle } from "@/components/language-toggle";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -7,30 +15,49 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb"
-import { Separator } from "@/components/ui/separator"
+} from "@/components/ui/breadcrumb";
+import { Separator } from "@/components/ui/separator";
 import {
   SidebarInset,
   SidebarProvider,
   SidebarTrigger,
-} from "@/components/ui/sidebar"
-import { ThemeToggle } from "@/components/theme-toggle"
-import { getDictionary } from "@/lib/dictionaries"
-import { i18n, type Locale } from "@/lib/i18n-config"
+} from "@/components/ui/sidebar";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { useTranslation } from "@/lib/i18n-client";
+import { fetcher, getApiUrl } from "@/lib/api-client";
 
-export const dynamicParams = false
-
-export function generateStaticParams() {
-  return i18n.locales.map((locale) => ({ locale }))
+/**
+ * 示例：定义 API 响应的类型
+ */
+interface DashboardData {
+  // 根据实际的 SpringBoot API 响应结构定义
+  // 这里是示例类型
+  message?: string;
+  data?: unknown;
 }
 
-export default async function Page({
-  params,
-}: {
-  params: Promise<{ locale: Locale }>
-}) {
-  const { locale } = await params
-  const dictionary = await getDictionary(locale)
+export default function Page() {
+  // 使用翻译 Hook（从 I18nProvider 获取）
+  const dictionary = useTranslation();
+
+  // 使用 SWR 获取数据（示例）
+  // 取消注释下面的代码以启用 API 调用
+  /*
+  const { data, error, isLoading } = useSWR<DashboardData>(
+    getApiUrl("/api/dashboard"),
+    fetcher
+  );
+
+  // 处理加载状态
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  // 处理错误状态
+  if (error) {
+    return <div>Error loading data: {error.message}</div>;
+  }
+  */
 
   return (
     <SidebarProvider>
