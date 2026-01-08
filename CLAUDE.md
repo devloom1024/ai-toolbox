@@ -109,6 +109,54 @@ frontend/
 - **API 调用**: 使用环境变量 `NEXT_PUBLIC_API_URL` 配置后端地址
 - **状态管理**: 使用 SWR 进行数据获取和缓存
 
+#### 核心类说明
+
+**API 客户端 (`lib/api-client.ts`)**
+- `apiClient` - axios 实例,包含请求/响应拦截器
+  - 请求拦截器: 自动添加 `X-Device-Id`、`Accept-Language`、`Authorization` header
+  - 响应拦截器: 统一错误处理
+- `request<T>(endpoint, options)` - 通用请求方法,支持 `errorHandler` 配置
+- `getApiUrl(endpoint)` - 构建完整 API URL
+- `ApiResponse<T>` - 统一响应接口 (`{ code, message, data, traceId }`)
+- `TokenResponse` - Token 响应接口 (`{ accessToken, refreshToken, expiresIn }`)
+
+**认证模块 (`lib/auth-context.tsx`)**
+- `AuthProvider` - 认证上下文提供者,管理登录状态
+- `useAuth()` - 获取认证状态的 Hook,返回 `{ isAuthenticated, isLoading, user, login, logout }`
+- `ACCESS_TOKEN_KEY` / `REFRESH_TOKEN_KEY` - localStorage 键名
+
+**错误处理 (`lib/error-handler.ts`)**
+- `ErrorHandlerConfig` - 错误处理器配置
+  - `showToast?: boolean` - 是否显示 toast 提示
+  - `toastType?: 'success' | 'error' | 'info' | 'warning'` - toast 类型
+  - `toastMessage?: string` - 自定义消息
+- `showApiError(message, config)` - 显示错误 toast
+- 使用方式: `authApi.login(data, { showToast: true, toastType: 'error' })`
+
+**国际化 (`lib/i18n-config.ts`)**
+- `i18n` - 语言配置,包含 `defaultLocale` 和 `locales`
+- `Locale` - 语言类型 (`'en-US' | 'zh-CN'`)
+
+**Hook (`hooks/use-locale.ts`)**
+- `useLocale()` - 获取当前语言,返回 `Locale` 类型
+
+**认证保护 (`components/auth-guard.tsx`)**
+- `AuthGuard` - 保护需要登录的页面,未登录时重定向到登录页
+
+**API 方法 (`lib/api/auth.ts`)**
+- `authApi.register(data, errorHandler?)` - 用户注册
+- `authApi.login(data, errorHandler?)` - 用户登录
+- `authApi.requestEmailCode(data, errorHandler?)` - 请求邮箱验证码
+- `authApi.resetPassword(data, errorHandler?)` - 重置密码
+- `authApi.getProfile(errorHandler?)` - 获取用户资料
+- `authApi.logout(scope?, errorHandler?)` - 登出
+- `authApi.refreshToken(refreshToken, errorHandler?)` - 刷新 Token
+
+#### 路由规范
+
+- 使用绝对路径 `${locale}` 保持语言参数: `/${locale}/login`
+- 可使用 `useLocale()` hook 获取当前语言
+
 ### 数据库迁移
 
 使用 **Flyway** 管理数据库版本:

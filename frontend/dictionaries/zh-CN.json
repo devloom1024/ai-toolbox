@@ -79,6 +79,35 @@
         "confirmPasswordRequired": "请确认密码",
         "passwordMismatch": "两次密码输入不一致"
       }
+    },
+    "forgotPassword": {
+      "title": "重置密码",
+      "description": "输入邮箱和验证码重置密码",
+      "email": "邮箱",
+      "emailPlaceholder": "your@example.com",
+      "code": "验证码",
+      "codePlaceholder": "6 位数字验证码",
+      "sendCode": "发送验证码",
+      "resendCode": "重新发送",
+      "resendCountdown": "秒后重试",
+      "newPassword": "新密码",
+      "passwordPlaceholder": "至少 8 位",
+      "confirmPassword": "确认密码",
+      "confirmPasswordPlaceholder": "再次输入密码",
+      "submit": "重置密码",
+      "submitting": "重置中...",
+      "rememberPassword": "记得密码？",
+      "login": "去登录",
+      "errors": {
+        "emailRequired": "请输入邮箱",
+        "emailInvalid": "邮箱格式不正确",
+        "codeRequired": "请输入验证码",
+        "codeInvalid": "验证码格式不正确",
+        "passwordRequired": "请输入密码",
+        "passwordTooShort": "密码长度至少 8 位",
+        "confirmPasswordRequired": "请确认密码",
+        "passwordMismatch": "两次密码输入不一致"
+      }
     }
   }
 }

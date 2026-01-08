@@ -79,6 +79,35 @@
         "confirmPasswordRequired": "Please confirm password",
         "passwordMismatch": "Passwords do not match"
       }
+    },
+    "forgotPassword": {
+      "title": "Reset password",
+      "description": "Enter your email and verification code to reset your password",
+      "email": "Email",
+      "emailPlaceholder": "your@example.com",
+      "code": "Verification Code",
+      "codePlaceholder": "6-digit code",
+      "sendCode": "Send Code",
+      "resendCode": "Resend",
+      "resendCountdown": "sec to retry",
+      "newPassword": "New Password",
+      "passwordPlaceholder": "At least 8 characters",
+      "confirmPassword": "Confirm Password",
+      "confirmPasswordPlaceholder": "Enter password again",
+      "submit": "Reset Password",
+      "submitting": "Resetting...",
+      "rememberPassword": "Remember your password?",
+      "login": "Login",
+      "errors": {
+        "emailRequired": "Email is required",
+        "emailInvalid": "Invalid email format",
+        "codeRequired": "Verification code is required",
+        "codeInvalid": "Invalid verification code format",
+        "passwordRequired": "Password is required",
+        "passwordTooShort": "Password must be at least 8 characters",
+        "confirmPasswordRequired": "Please confirm password",
+        "passwordMismatch": "Passwords do not match"
+      }
     }
   }
 }

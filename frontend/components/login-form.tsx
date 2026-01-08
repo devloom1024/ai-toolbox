@@ -1,7 +1,8 @@
 'use client'
 
 import { Suspense, useState } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter, useSearchParams, usePathname } from 'next/navigation'
+import { useLocale } from '@/hooks/use-locale'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import {
@@ -30,6 +31,7 @@ function LoginFormContent({
 }: React.ComponentProps<'div'>) {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const locale = useLocale()
   const { login } = useAuth()
   const dict = useTranslation()
 
@@ -129,10 +131,10 @@ function LoginFormContent({
               <Field>
                 <div className="flex items-center">
                   <FieldLabel htmlFor="password">{dict.auth.login.password}</FieldLabel>
-                  <a
-                    href="/forgot-password"
-                    className="ml-auto text-sm underline-offset-4 hover:underline"
-                  >
+                   <a
+                     href={`/${locale}/forgot-password`}
+                     className="ml-auto text-sm underline-offset-4 hover:underline"
+                   >
                     {dict.auth.login.forgotPassword}
                   </a>
                 </div>
@@ -160,9 +162,9 @@ function LoginFormContent({
                 <Button type="submit" disabled={isLoading}>
                   {isLoading ? dict.auth.login.submitting : dict.auth.login.submit}
                 </Button>
-                <FieldDescription className="text-center">
-                  {dict.auth.login.noAccount} <a href="../register" className="underline">{dict.auth.login.register}</a>
-                </FieldDescription>
+                 <FieldDescription className="text-center">
+                   {dict.auth.login.noAccount} <a href={`/${locale}/register`} className="underline">{dict.auth.login.register}</a>
+                 </FieldDescription>
               </Field>
             </FieldGroup>
           </form>

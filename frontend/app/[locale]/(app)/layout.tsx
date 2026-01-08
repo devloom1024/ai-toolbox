@@ -6,6 +6,10 @@ import {
   SidebarProvider,
 } from "@/components/ui/sidebar"
 
+export function generateStaticParams() {
+  return [{ locale: "en-US" }, { locale: "zh-CN" }]
+}
+
 /**
  * 应用主布局
  * 包含认证保护和侧边栏布局
