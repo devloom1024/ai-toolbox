@@ -1,4 +1,4 @@
-import { getApiUrl, createHeaders } from '../api-client'
+import { getApiUrl, apiClient } from '../api-client'
 
 /**
  * API 响应格式
@@ -7,6 +7,7 @@ export interface ApiResponse<T = any> {
   code: number
   message: string
   data: T | null
+  traceId: string | null
 }
 
 /**
@@ -81,14 +82,13 @@ export interface ProfileResponse {
 /**
  * 创建带认证的请求选项
  */
-function createAuthHeaders(token?: string): HeadersInit {
-  const headers = createHeaders()
+function createAuthHeaders(token?: string): Record<string, string> {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  }
 
   if (token) {
-    return {
-      ...headers,
-      'Authorization': `Bearer ${token}`
-    }
+    headers['Authorization'] = `Bearer ${token}`
   }
 
   return headers
@@ -102,14 +102,26 @@ async function request<T>(
   options: RequestInit = {}
 ): Promise<ApiResponse<T>> {
   const url = getApiUrl(endpoint)
-  const response = await fetch(url, {
-    ...options,
-    headers: createHeaders(options.headers),
-  })
+  const method = options.method || 'POST'
 
-  const data: ApiResponse<T> = await response.json()
+  let response
+  const headers = createAuthHeaders()
 
-  if (data.code !== 0 && !response.ok) {
+  if (method.toUpperCase() === 'GET') {
+    response = await apiClient.get<ApiResponse<T>>(url, { headers })
+  } else if (method.toUpperCase() === 'POST') {
+    response = await apiClient.post<ApiResponse<T>>(url, options.body, { headers })
+  } else if (method.toUpperCase() === 'PUT') {
+    response = await apiClient.put<ApiResponse<T>>(url, options.body, { headers })
+  } else if (method.toUpperCase() === 'DELETE') {
+    response = await apiClient.delete<ApiResponse<T>>(url, { headers })
+  } else {
+    throw new Error(`Unsupported HTTP method: ${method}`)
+  }
+
+  const data = response.data
+
+  if (data.code !== 0) {
     throw new Error(data.message || 'Request failed')
   }
 

@@ -56,6 +56,7 @@ public class TokenService {
     private TokenResponse createTokenPair(UserEntity user) {
         String normalizedDevice = normalizeDevice(DeviceContextHolder.getDeviceId());
         refreshTokenRepository.deleteByUserAndDevice(user, normalizedDevice);
+        refreshTokenRepository.flush();  // 强制立即执行 DELETE，避免 Hibernate 延迟执行导致唯一索引冲突
         String refreshTokenValue = RandomUtil.randomHex(32);
         Instant now = clock.instant();
         RefreshTokenEntity refreshToken = RefreshTokenEntity.builder()

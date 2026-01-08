@@ -266,6 +266,10 @@ components:
           example: ok
         data:
           nullable: true
+        traceId:
+          type: string
+          nullable: true
+          description: 请求链路追踪 ID，用于问题排查
     ApiResponseError:
       allOf:
         - $ref: "#/components/schemas/ApiResponse"
@@ -325,6 +329,10 @@ components:
         userId:
           type: integer
           format: int64
+          description: 新用户主键 ID
+        token:
+          $ref: "#/components/schemas/TokenResponse"
+          description: 初次登录的 Token 对（注册后自动登录）
     LoginRequest:
       type: object
       required: [identifier, password]
@@ -442,7 +450,13 @@ components:
           type: string
         status:
           type: integer
-          example: 1
+          format: int32
+          enum: [0, 1, 2]
+          description: |
+            账号状态：
+            - 0: 待验证（注册后初始状态）
+            - 1: 正常（已验证邮箱）
+            - 2: 已禁用
         bindings:
           type: array
           items:

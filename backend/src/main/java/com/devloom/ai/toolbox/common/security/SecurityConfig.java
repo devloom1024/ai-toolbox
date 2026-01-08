@@ -76,7 +76,8 @@ public class SecurityConfig {
                 "Content-Type",
                 "Accept",
                 "Origin",
-                "X-Requested-With"
+                "X-Requested-With",
+                "x-device-id"
         ));
 
         // 允许携带凭证（cookies 和 Authorization header）

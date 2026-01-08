@@ -1,5 +1,6 @@
 package com.devloom.ai.toolbox.common.response;
 
+import com.devloom.ai.toolbox.common.util.TraceContext;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -13,9 +14,11 @@ public class ApiResponse<T> {
     private final String message;
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private final T data;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private final String traceId;
 
     public static <T> ApiResponse<T> success(String message, T data) {
-        return new ApiResponse<>(0, message, data);
+        return new ApiResponse<>(0, message, data, TraceContext.getTraceId());
     }
 
     public static <T> ApiResponse<T> success(T data) {
@@ -27,6 +30,6 @@ public class ApiResponse<T> {
     }
 
     public static <T> ApiResponse<T> error(int code, String message) {
-        return new ApiResponse<>(code, message, null);
+        return new ApiResponse<>(code, message, null, TraceContext.getTraceId());
     }
 }

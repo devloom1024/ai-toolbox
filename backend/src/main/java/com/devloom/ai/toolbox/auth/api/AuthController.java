@@ -11,6 +11,7 @@ import com.devloom.ai.toolbox.common.response.ApiResponse;
 import com.devloom.ai.toolbox.common.security.CurrentUser;
 import com.devloom.ai.toolbox.common.web.RequestHeaderExtractor;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.http.HttpStatus;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -35,6 +36,7 @@ public class AuthController {
      * <p>邮箱+验证码注册账号，详情见 docs/design/auth/openapi.yml。</p>
      */
     @PostMapping("/register")
+    @ResponseStatus(HttpStatus.CREATED)
     public ApiResponse<RegisterResponse> register(@Valid @RequestBody RegisterRequest request) {
         RegisterResponse response = authApplicationService.register(request);
         return ApiResponse.success(response);

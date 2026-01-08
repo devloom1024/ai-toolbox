@@ -148,9 +148,8 @@ export function RegisterForm({
       })
 
       if (response.code === 0 && response.data) {
-        // 注册成功，直接使用返回的 token 自动登录
         await login(response.data.token.accessToken, response.data.token.refreshToken)
-        router.push('./')
+        router.push('/')
       } else {
         setErrors({ submit: response.message || 'Registration failed' })
       }

@@ -85,6 +85,10 @@ components:
         data:
           nullable: true
           description: 响应数据，可为 null
+        traceId:
+          type: string
+          nullable: true
+          description: 请求链路追踪 ID，用于问题排查
 ```
 
 #### 3.2 错误响应
