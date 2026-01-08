@@ -25,6 +25,7 @@ import {
   SidebarHeader,
   SidebarRail,
 } from "@/components/ui/sidebar"
+import { useAuth } from "@/lib/auth-context"
 
 // This is sample data.
 const data = {
@@ -157,6 +158,17 @@ const data = {
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const { user } = useAuth()
+
+  // 从认证上下文获取用户信息
+  const userData = user
+    ? {
+        name: user.nickname,
+        email: user.bindings.find(b => b.type === 'EMAIL')?.identifier || '',
+        avatar: user.avatar,
+      }
+    : data.user // 降级到默认数据（理论上不会发生，因为有 AuthGuard）
+
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
@@ -167,7 +179,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavProjects projects={data.projects} />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser user={userData} />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

@@ -25,5 +25,60 @@
       "title": "Welcome back, shadcn",
       "description": "Monitor your projects, manage conversations, and get quick access to the sections you visit most."
     }
+  },
+  "auth": {
+    "login": {
+      "title": "Welcome back",
+      "description": "Login with your email and password",
+      "email": "Email",
+      "emailPlaceholder": "your@example.com",
+      "password": "Password",
+      "passwordPlaceholder": "At least 8 characters",
+      "forgotPassword": "Forgot your password?",
+      "submit": "Login",
+      "submitting": "Logging in...",
+      "noAccount": "Don't have an account?",
+      "register": "Sign up",
+      "errors": {
+        "emailRequired": "Email is required",
+        "emailInvalid": "Invalid email format",
+        "passwordRequired": "Password is required",
+        "passwordTooShort": "Password must be at least 8 characters"
+      }
+    },
+    "register": {
+      "title": "Create account",
+      "description": "Fill in your information to create an account",
+      "email": "Email",
+      "emailPlaceholder": "your@example.com",
+      "nickname": "Nickname",
+      "nicknamePlaceholder": "Enter your nickname",
+      "code": "Verification Code",
+      "codePlaceholder": "6-digit code",
+      "sendCode": "Send Code",
+      "resendCode": "Resend",
+      "resendCountdown": "sec to retry",
+      "password": "Password",
+      "passwordPlaceholder": "At least 8 characters",
+      "confirmPassword": "Confirm Password",
+      "confirmPasswordPlaceholder": "Enter password again",
+      "submit": "Register",
+      "submitting": "Registering...",
+      "hasAccount": "Already have an account?",
+      "login": "Login",
+      "errors": {
+        "emailRequired": "Email is required",
+        "emailInvalid": "Invalid email format",
+        "nicknameRequired": "Nickname is required",
+        "nicknameTooShort": "Nickname must be 2-20 characters",
+        "nicknameTooLong": "Nickname must be 2-20 characters",
+        "codeRequired": "Verification code is required",
+        "codeInvalid": "Invalid verification code format",
+        "passwordRequired": "Password is required",
+        "passwordTooShort": "Password must be at least 8 characters",
+        "confirmPasswordRequired": "Please confirm password",
+        "passwordMismatch": "Passwords do not match"
+      }
+    }
   }
 }
