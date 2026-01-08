@@ -22,6 +22,7 @@ import { Input } from '@/components/ui/input'
 import { authApi } from '@/lib/api/auth'
 import { useAuth } from '@/lib/auth-context'
 import { useTranslation } from '@/lib/i18n-client'
+import type { ErrorHandlerConfig } from '@/lib/error-handler'
 
 function LoginFormContent({
   className,
@@ -74,21 +75,24 @@ function LoginFormContent({
     setIsLoading(true)
     setErrors({})
 
+    const errorHandler: ErrorHandlerConfig = {
+      showToast: true,
+      toastType: 'error',
+    }
+
     try {
       const response = await authApi.login({
         identifier: formData.email,
         password: formData.password,
         type: 'EMAIL',
-      })
+      }, errorHandler)
 
       if (response.code === 0 && response.data) {
         await login(response.data.accessToken, response.data.refreshToken)
         router.push(redirectPath)
-      } else {
-        setErrors({ submit: response.message || '登录失败' })
       }
-    } catch (error) {
-      setErrors({ submit: error instanceof Error ? error.message : '登录失败' })
+    } catch {
+      // 错误已在拦截器中通过 toast 显示
     } finally {
       setIsLoading(false)
     }

@@ -1,5 +1,6 @@
 import { request, apiClient } from '../api-client'
 import type { ApiResponse, TokenResponse } from '../api-client'
+import type { ErrorHandlerConfig } from '../error-handler'
 
 /**
  * 注册请求参数
@@ -68,69 +69,76 @@ export const authApi = {
   /**
    * 用户注册
    */
-  register: (data: RegisterRequest) => {
+  register: (data: RegisterRequest, errorHandler?: ErrorHandlerConfig) => {
     return request<RegisterResponse>('/api/v1/auth/register', {
       method: 'POST',
       body: JSON.stringify(data),
+      errorHandler,
     })
   },
 
   /**
    * 用户登录
    */
-  login: (data: LoginRequest) => {
+  login: (data: LoginRequest, errorHandler?: ErrorHandlerConfig) => {
     return request<TokenResponse>('/api/v1/auth/login', {
       method: 'POST',
       body: JSON.stringify(data),
+      errorHandler,
     })
   },
 
   /**
    * 请求邮箱验证码
    */
-  requestEmailCode: (data: EmailCodeRequest) => {
+  requestEmailCode: (data: EmailCodeRequest, errorHandler?: ErrorHandlerConfig) => {
     return request<null>('/api/v1/auth/code/email', {
       method: 'POST',
       body: JSON.stringify(data),
+      errorHandler,
     })
   },
 
   /**
    * 刷新 Token
    */
-  refreshToken: (refreshToken: string) => {
+  refreshToken: (refreshToken: string, errorHandler?: ErrorHandlerConfig) => {
     return request<TokenResponse>('/api/v1/auth/token/refresh', {
       method: 'POST',
       body: JSON.stringify({ refreshToken }),
+      errorHandler,
     })
   },
 
   /**
    * 登出
    */
-  logout: (scope: 'CURRENT' | 'ALL' = 'CURRENT') => {
+  logout: (scope: 'CURRENT' | 'ALL' = 'CURRENT', errorHandler?: ErrorHandlerConfig) => {
     return request<null>('/api/v1/auth/logout', {
       method: 'POST',
       body: JSON.stringify({ scope }),
+      errorHandler,
     })
   },
 
   /**
    * 重置密码
    */
-  resetPassword: (data: PasswordResetRequest) => {
+  resetPassword: (data: PasswordResetRequest, errorHandler?: ErrorHandlerConfig) => {
     return request<null>('/api/v1/auth/password/reset', {
       method: 'POST',
       body: JSON.stringify(data),
+      errorHandler,
     })
   },
 
   /**
    * 获取用户资料
    */
-  getProfile: () => {
+  getProfile: (errorHandler?: ErrorHandlerConfig) => {
     return request<ProfileResponse>('/api/v1/auth/profile', {
       method: 'GET',
+      errorHandler,
     })
   },
 }

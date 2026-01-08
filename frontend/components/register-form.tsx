@@ -22,6 +22,7 @@ import { Input } from '@/components/ui/input'
 import { authApi } from '@/lib/api/auth'
 import { useAuth } from '@/lib/auth-context'
 import { useTranslation } from '@/lib/i18n-client'
+import type { ErrorHandlerConfig } from '@/lib/error-handler'
 
 export function RegisterForm({
   className,
@@ -139,22 +140,25 @@ export function RegisterForm({
     setIsLoading(true)
     setErrors({})
 
+    const errorHandler: ErrorHandlerConfig = {
+      showToast: true,
+      toastType: 'error',
+    }
+
     try {
       const response = await authApi.register({
         email: formData.email,
         password: formData.password,
         code: formData.code,
         nickname: formData.nickname,
-      })
+      }, errorHandler)
 
       if (response.code === 0 && response.data) {
         await login(response.data.token.accessToken, response.data.token.refreshToken)
         router.push('/')
-      } else {
-        setErrors({ submit: response.message || 'Registration failed' })
       }
-    } catch (error) {
-      setErrors({ submit: error instanceof Error ? error.message : 'Registration failed' })
+    } catch {
+      // 错误已在拦截器中通过 toast 显示
     } finally {
       setIsLoading(false)
     }
