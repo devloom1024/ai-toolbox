@@ -12,6 +12,25 @@ import axios from 'axios';
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 
 /**
+ * API 响应格式
+ */
+export interface ApiResponse<T = any> {
+  code: number
+  message: string
+  data: T | null
+  traceId: string | null
+}
+
+/**
+ * Token 响应数据
+ */
+export interface TokenResponse {
+  accessToken: string
+  refreshToken: string
+  expiresIn: number
+}
+
+/**
  * 获取或生成设备ID
  * 设备ID用于后端识别不同的设备登录会话
  */
@@ -56,33 +75,28 @@ function getLanguage(): string {
 }
 
 /**
- * 创建通用请求头
- */
-function getCommonHeaders(): Record<string, string> {
-  return {
-    'Content-Type': 'application/json',
-    'Accept-Language': getLanguage(),
-    'X-Device-Id': getDeviceId(),
-  }
-}
-
-/**
  * Axios 实例
  */
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
-  headers: getCommonHeaders(),
 })
 
 /**
- * 请求拦截器 - 添加认证 token
+ * 请求拦截器 - 添加认证 token 和通用 header
  */
 apiClient.interceptors.request.use(
   (config) => {
     if (typeof window !== 'undefined') {
+  config.headers['X-Device-Id'] = getDeviceId()
+  config.headers['Accept-Language'] = getLanguage()
+
+  if (!config.headers['Content-Type']) {
+    config.headers['Content-Type'] = 'application/json'
+  }
+
       const token = localStorage.getItem('access_token')
       if (token) {
-        config.headers.Authorization = `Bearer ${token}`
+        config.headers['Authorization'] = `Bearer ${token}`
       }
     }
     return config
@@ -129,6 +143,38 @@ export function getApiUrl(endpoint: string): string {
     ? endpoint
     : `/${endpoint}`;
   return `${API_BASE_URL}${normalizedEndpoint}`;
+}
+
+/**
+ * 通用请求方法
+ */
+export async function request<T>(
+  endpoint: string,
+  options: RequestInit = {}
+): Promise<ApiResponse<T>> {
+  const url = getApiUrl(endpoint)
+  const method = options.method || 'POST'
+
+  let response
+  if (method.toUpperCase() === 'GET') {
+    response = await apiClient.get<ApiResponse<T>>(url)
+  } else if (method.toUpperCase() === 'POST') {
+    response = await apiClient.post<ApiResponse<T>>(url, options.body)
+  } else if (method.toUpperCase() === 'PUT') {
+    response = await apiClient.put<ApiResponse<T>>(url, options.body)
+  } else if (method.toUpperCase() === 'DELETE') {
+    response = await apiClient.delete<ApiResponse<T>>(url)
+  } else {
+    throw new Error(`Unsupported HTTP method: ${method}`)
+  }
+
+  const data = response.data
+
+  if (data.code !== 0) {
+    throw new Error(data.message || 'Request failed')
+  }
+
+  return data
 }
 
 /**

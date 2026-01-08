@@ -1,14 +1,5 @@
-import { getApiUrl, apiClient } from '../api-client'
-
-/**
- * API 响应格式
- */
-export interface ApiResponse<T = any> {
-  code: number
-  message: string
-  data: T | null
-  traceId: string | null
-}
+import { request, apiClient } from '../api-client'
+import type { ApiResponse, TokenResponse } from '../api-client'
 
 /**
  * 注册请求参数
@@ -35,15 +26,6 @@ export interface LoginRequest {
   identifier: string
   password: string
   type?: 'EMAIL'
-}
-
-/**
- * Token 响应数据
- */
-export interface TokenResponse {
-  accessToken: string
-  refreshToken: string
-  expiresIn: number
 }
 
 /**
@@ -77,55 +59,6 @@ export interface ProfileResponse {
     identifier: string
     verified: boolean
   }>
-}
-
-/**
- * 创建带认证的请求选项
- */
-function createAuthHeaders(token?: string): Record<string, string> {
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-  }
-
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`
-  }
-
-  return headers
-}
-
-/**
- * 通用请求方法
- */
-async function request<T>(
-  endpoint: string,
-  options: RequestInit = {}
-): Promise<ApiResponse<T>> {
-  const url = getApiUrl(endpoint)
-  const method = options.method || 'POST'
-
-  let response
-  const headers = createAuthHeaders()
-
-  if (method.toUpperCase() === 'GET') {
-    response = await apiClient.get<ApiResponse<T>>(url, { headers })
-  } else if (method.toUpperCase() === 'POST') {
-    response = await apiClient.post<ApiResponse<T>>(url, options.body, { headers })
-  } else if (method.toUpperCase() === 'PUT') {
-    response = await apiClient.put<ApiResponse<T>>(url, options.body, { headers })
-  } else if (method.toUpperCase() === 'DELETE') {
-    response = await apiClient.delete<ApiResponse<T>>(url, { headers })
-  } else {
-    throw new Error(`Unsupported HTTP method: ${method}`)
-  }
-
-  const data = response.data
-
-  if (data.code !== 0) {
-    throw new Error(data.message || 'Request failed')
-  }
-
-  return data
 }
 
 /**
@@ -175,11 +108,10 @@ export const authApi = {
   /**
    * 登出
    */
-  logout: (token: string, scope: 'CURRENT' | 'ALL' = 'CURRENT') => {
+  logout: (scope: 'CURRENT' | 'ALL' = 'CURRENT') => {
     return request<null>('/api/v1/auth/logout', {
       method: 'POST',
       body: JSON.stringify({ scope }),
-      headers: createAuthHeaders(token),
     })
   },
 
@@ -196,10 +128,11 @@ export const authApi = {
   /**
    * 获取用户资料
    */
-  getProfile: (token: string) => {
+  getProfile: () => {
     return request<ProfileResponse>('/api/v1/auth/profile', {
       method: 'GET',
-      headers: createAuthHeaders(token),
     })
   },
 }
+
+export type { ApiResponse, TokenResponse }

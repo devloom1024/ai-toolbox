@@ -1,7 +1,7 @@
 'use client'
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react'
-import { authApi, TokenResponse, ProfileResponse } from './api/auth'
+import { authApi, TokenResponse, type ProfileResponse } from './api/auth'
 
 /**
  * 认证状态
@@ -46,9 +46,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   /**
    * 加载用户资料
    */
-  const loadProfile = useCallback(async (token: string) => {
+  const loadProfile = useCallback(async () => {
     try {
-      const response = await authApi.getProfile(token)
+      const response = await authApi.getProfile()
       if (response.code === 0 && response.data) {
         setState(prev => ({
           ...prev,
@@ -85,7 +85,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           accessToken,
           refreshToken,
         }))
-        await loadProfile(accessToken)
+        await loadProfile()
       }
 
       setState(prev => ({ ...prev, isLoading: false }))
@@ -107,7 +107,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       refreshToken,
     }))
 
-    await loadProfile(accessToken)
+    await loadProfile()
   }, [loadProfile])
 
   /**
@@ -115,9 +115,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
    */
   const logout = useCallback(async () => {
     try {
-      if (state.accessToken) {
-        await authApi.logout(state.accessToken)
-      }
+      await authApi.logout()
     } catch (error) {
       console.error('Logout failed:', error)
     } finally {
@@ -132,7 +130,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         refreshToken: null,
       })
     }
-  }, [state.accessToken])
+  }, [])
 
   /**
    * 刷新认证

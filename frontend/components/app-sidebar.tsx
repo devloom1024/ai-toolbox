@@ -164,7 +164,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const userData = user
     ? {
         name: user.nickname,
-        email: user.bindings.find(b => b.type === 'EMAIL')?.identifier || '',
+        email: user.bindings.find((b: { type: string }) => b.type === 'EMAIL')?.identifier || '',
         avatar: user.avatar,
       }
     : data.user // 降级到默认数据（理论上不会发生，因为有 AuthGuard）
