@@ -1,7 +1,7 @@
 'use client'
 
 import { Suspense, useState } from 'react'
-import { useRouter, useSearchParams, usePathname } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useLocale } from '@/hooks/use-locale'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -35,7 +35,6 @@ function LoginFormContent({
   const { login } = useAuth()
   const dict = useTranslation()
 
-  // 获取重定向路径
   const redirectPath = searchParams.get('redirect') || '/'
 
   const [formData, setFormData] = useState({
@@ -45,8 +44,8 @@ function LoginFormContent({
 
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isLoading, setIsLoading] = useState(false)
+  const [isLinuxDoLoading, setIsLinuxDoLoading] = useState(false)
 
-  // 表单验证
   const validateForm = () => {
     const newErrors: Record<string, string> = {}
 
@@ -66,7 +65,6 @@ function LoginFormContent({
     return Object.keys(newErrors).length === 0
   }
 
-  // 提交登录
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
@@ -94,9 +92,28 @@ function LoginFormContent({
         router.push(redirectPath)
       }
     } catch {
-      // 错误已在拦截器中通过 toast 显示
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const handleLinuxDoLogin = async () => {
+    setIsLinuxDoLoading(true)
+
+    const errorHandler: ErrorHandlerConfig = {
+      showToast: true,
+      toastType: 'error',
+    }
+
+    try {
+      const response = await authApi.linuxDoAuthorize(redirectPath, errorHandler)
+
+      if (response.code === 0 && response.data) {
+        sessionStorage.setItem('linuxdo_oauth_state', response.data.state)
+        window.location.href = response.data.authorizeUrl
+      }
+    } catch {
+      setIsLinuxDoLoading(false)
     }
   }
 
@@ -134,9 +151,9 @@ function LoginFormContent({
                    <a
                      href={`/${locale}/forgot-password`}
                      className="ml-auto text-sm underline-offset-4 hover:underline"
-                   >
-                    {dict.auth.login.forgotPassword}
-                  </a>
+                    >
+                     {dict.auth.login.forgotPassword}
+                   </a>
                 </div>
                 <Input
                   id="password"
@@ -162,12 +179,36 @@ function LoginFormContent({
                 <Button type="submit" disabled={isLoading}>
                   {isLoading ? dict.auth.login.submitting : dict.auth.login.submit}
                 </Button>
-                 <FieldDescription className="text-center">
-                   {dict.auth.login.noAccount} <a href={`/${locale}/register`} className="underline">{dict.auth.login.register}</a>
-                 </FieldDescription>
               </Field>
             </FieldGroup>
           </form>
+
+          <div className="relative my-6">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-card px-2 text-muted-foreground">
+                {dict.auth.login.orContinue}
+              </span>
+            </div>
+          </div>
+
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={handleLinuxDoLogin}
+            disabled={isLinuxDoLoading}
+          >
+            <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+            </svg>
+            {isLinuxDoLoading ? dict.auth.login.linuxDoLoading : dict.auth.login.linuxDo}
+          </Button>
+
+          <FieldDescription className="mt-4 text-center">
+            {dict.auth.login.noAccount} <a href={`/${locale}/register`} className="underline">{dict.auth.login.register}</a>
+          </FieldDescription>
         </CardContent>
       </Card>
     </div>

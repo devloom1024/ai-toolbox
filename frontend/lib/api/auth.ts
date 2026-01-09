@@ -63,6 +63,22 @@ export interface ProfileResponse {
 }
 
 /**
+ * LinuxDo OAuth 授权响应数据
+ */
+export interface LinuxDoAuthorizeResponse {
+  state: string
+  authorizeUrl: string
+}
+
+/**
+ * LinuxDo OAuth 回调参数
+ */
+export interface LinuxDoCallbackParams {
+  code: string
+  state: string
+}
+
+/**
  * 认证 API 服务
  */
 export const authApi = {
@@ -141,6 +157,32 @@ export const authApi = {
       errorHandler,
     })
   },
+
+  /**
+   * 获取 LinuxDo OAuth 授权链接
+   * @param redirectUri 登录成功后的前端跳转地址
+   */
+  linuxDoAuthorize: (redirectUri?: string, errorHandler?: ErrorHandlerConfig) => {
+    const params = new URLSearchParams()
+    if (redirectUri) {
+      params.set('redirect_uri', redirectUri)
+    }
+    return request<LinuxDoAuthorizeResponse>(`/api/v1/auth/oauth/linuxdo/authorize?${params}`, {
+      method: 'GET',
+      errorHandler,
+    })
+  },
+
+  /**
+   * 绑定 LinuxDo 账号
+   */
+  bindLinuxDo: (data: { code: string; state: string }, errorHandler?: ErrorHandlerConfig) => {
+    return request<null>('/api/v1/auth/bind/linuxdo', {
+      method: 'POST',
+      body: JSON.stringify(data),
+      errorHandler,
+    })
+  },
 }
 
-export type { ApiResponse, TokenResponse }
+export type { ApiResponse, TokenResponse, LinuxDoAuthorizeResponse, LinuxDoCallbackParams }

@@ -39,6 +39,9 @@
       "submitting": "登录中...",
       "noAccount": "还没有账号？",
       "register": "注册",
+      "orContinue": "或使用其他方式",
+      "linuxDo": "使用 LinuxDo 登录",
+      "linuxDoLoading": "跳转中...",
       "errors": {
         "emailRequired": "请输入邮箱",
         "emailInvalid": "邮箱格式不正确",
