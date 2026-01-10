@@ -50,5 +50,16 @@ public class AuthProperties {
         private String profileUrl = "";
         private String redirectBaseUrl = "";
         private long stateTtlMinutes = 5;
+        private ProxyProperties proxy = new ProxyProperties();
+    }
+
+    @Getter
+    @Setter
+    public static class ProxyProperties {
+        private String host = "";
+        private int port = 0;
+        private String username = "";
+        private String password = "";
+        private boolean enabled = false;
     }
 }

@@ -100,16 +100,13 @@ function LoginFormContent({
   const handleLinuxDoLogin = async () => {
     setIsLinuxDoLoading(true)
 
-    const errorHandler: ErrorHandlerConfig = {
-      showToast: true,
-      toastType: 'error',
-    }
-
     try {
-      const response = await authApi.linuxDoAuthorize(redirectPath, errorHandler)
+      const callbackUrl = `${window.location.origin}/oauth/linuxdo/callback`
+      const response = await authApi.linuxDoAuthorize(callbackUrl)
 
       if (response.code === 0 && response.data) {
         sessionStorage.setItem('linuxdo_oauth_state', response.data.state)
+        sessionStorage.setItem('linuxdo_redirect_locale', locale)
         window.location.href = response.data.authorizeUrl
       }
     } catch {

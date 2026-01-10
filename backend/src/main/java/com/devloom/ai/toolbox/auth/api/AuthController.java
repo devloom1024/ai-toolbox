@@ -119,7 +119,7 @@ public class AuthController {
 
     /**
      * GET /api/v1/auth/oauth/linuxdo/callback
-     * <p>处理 LinuxDo OAuth 回调，返回登录后的 Token。</p>
+     * <p>处理 LinuxDo OAuth 回调，验证 code 和 state，返回登录后的 Token。</p>
      */
     @GetMapping("/oauth/linuxdo/callback")
     public ApiResponse<TokenResponse> linuxDoCallback(

@@ -71,3 +71,9 @@ app:
       profile-url: ${LINUXDO_PROFILE_URL}
       redirect-base-url: ${LINUXDO_REDIRECT_BASE_URL}
       state-ttl-minutes: ${LINUXDO_STATE_TTL}
+      proxy:
+        enabled: ${LINUXDO_PROXY_ENABLED}
+        host: ${LINUXDO_PROXY_HOST}
+        port: ${LINUXDO_PROXY_PORT}
+        username: ${LINUXDO_PROXY_USERNAME}
+        password: ${LINUXDO_PROXY_PASSWORD}

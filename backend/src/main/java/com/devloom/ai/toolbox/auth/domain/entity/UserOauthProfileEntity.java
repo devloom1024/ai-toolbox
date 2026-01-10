@@ -18,6 +18,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 /**
  * t_user_oauth_profile 存储 LinuxDo OAuth 资料。
@@ -75,6 +77,7 @@ public class UserOauthProfileEntity {
     private Instant tokenExpiresAt;
 
     /** LinuxDo 返回的原始 JSON 资料。 */
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "raw_profile", columnDefinition = "jsonb")
     private String rawProfile;
 

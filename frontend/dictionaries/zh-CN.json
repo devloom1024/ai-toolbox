@@ -112,5 +112,19 @@
         "passwordMismatch": "两次密码输入不一致"
       }
     }
+  },
+  "oauth": {
+    "callback": {
+      "loggingIn": "登录中...",
+      "pleaseWait": "正在完成身份验证，请稍候...",
+      "failed": "登录失败",
+      "backToLogin": "返回登录",
+      "errors": {
+        "missingCodeOrState": "缺少 code 或 state 参数",
+        "invalidState": "无效的 state 参数",
+        "loginFailed": "登录失败，请重试",
+        "networkError": "网络错误，请重试"
+      }
+    }
   }
 }

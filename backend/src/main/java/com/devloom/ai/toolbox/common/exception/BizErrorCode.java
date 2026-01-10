@@ -21,6 +21,7 @@ public enum BizErrorCode {
     PASSWORD_MISMATCH(2003, "auth.password.mismatch", "Password mismatch"),
     REFRESH_TOKEN_INVALID(2004, "auth.refresh-token.invalid", "Refresh token invalid"),
     LINUXDO_NOT_CONFIGURED(2005, "auth.linuxdo.not-configured", "LinuxDo integration is not configured"),
+    LINUXDO_ALREADY_BIND(2006, "auth.linuxdo.already-bind", "LinuxDo account is already bound to another user"),
     FEATURE_NOT_IMPLEMENTED(9000, "error.not-implemented", "Feature not implemented"),
     INTERNAL_ERROR(9999, "error.internal", "Internal server error");
 

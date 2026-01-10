@@ -112,5 +112,19 @@
         "passwordMismatch": "Passwords do not match"
       }
     }
+  },
+  "oauth": {
+    "callback": {
+      "loggingIn": "Logging in...",
+      "pleaseWait": "Please wait while we complete the authentication.",
+      "failed": "Login Failed",
+      "backToLogin": "Back to Login",
+      "errors": {
+        "missingCodeOrState": "Missing code or state parameter",
+        "invalidState": "Invalid state parameter",
+        "loginFailed": "Login failed, please try again",
+        "networkError": "Network error, please try again"
+      }
+    }
   }
 }

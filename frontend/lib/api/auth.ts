@@ -160,14 +160,22 @@ export const authApi = {
 
   /**
    * 获取 LinuxDo OAuth 授权链接
-   * @param redirectUri 登录成功后的前端跳转地址
+   * @param redirectUri 回调地址（前端页面地址）
    */
-  linuxDoAuthorize: (redirectUri?: string, errorHandler?: ErrorHandlerConfig) => {
+  linuxDoAuthorize: (redirectUri: string, errorHandler?: ErrorHandlerConfig) => {
     const params = new URLSearchParams()
-    if (redirectUri) {
-      params.set('redirect_uri', redirectUri)
-    }
+    params.set('redirect_uri', redirectUri)
     return request<LinuxDoAuthorizeResponse>(`/api/v1/auth/oauth/linuxdo/authorize?${params}`, {
+      method: 'GET',
+      errorHandler,
+    })
+  },
+
+  /**
+   * 处理 LinuxDo OAuth 回调，换取 token
+   */
+  linuxDoCallback: (code: string, state: string, errorHandler?: ErrorHandlerConfig) => {
+    return request<TokenResponse>(`/api/v1/auth/oauth/linuxdo/callback?code=${code}&state=${state}`, {
       method: 'GET',
       errorHandler,
     })

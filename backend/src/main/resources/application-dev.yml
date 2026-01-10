@@ -63,8 +63,14 @@ app:
     linuxdo:
       client-id: ${LINUXDO_CLIENT_ID}
       client-secret: ${LINUXDO_CLIENT_SECRET}
-      authorize-url: https://linux.do/oauth/authorize
-      token-url: https://linux.do/oauth/token
-      profile-url: https://linux.do/api/profile
-      redirect-base-url: https://app.local/oauth/linuxdo/callback
-      state-ttl-minutes: 5
+      authorize-url: ${LINUXDO_AUTHORIZE_URL}
+      token-url: ${LINUXDO_TOKEN_URL}
+      profile-url: ${LINUXDO_PROFILE_URL}
+      redirect-base-url: ${LINUXDO_REDIRECT_BASE_URL}
+      state-ttl-minutes: ${LINUXDO_STATE_TTL}
+      proxy:
+        enabled: ${LINUXDO_PROXY_ENABLED}
+        host: ${LINUXDO_PROXY_HOST}
+        port: ${LINUXDO_PROXY_PORT}
+        username: ${LINUXDO_PROXY_USERNAME}
+        password: ${LINUXDO_PROXY_PASSWORD}
