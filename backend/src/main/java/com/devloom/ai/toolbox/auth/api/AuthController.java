@@ -6,7 +6,7 @@ import com.devloom.ai.toolbox.auth.dto.response.ProfileResponse;
 import com.devloom.ai.toolbox.auth.dto.response.RegisterResponse;
 import com.devloom.ai.toolbox.auth.dto.response.TokenResponse;
 import com.devloom.ai.toolbox.auth.service.AuthApplicationService;
-import com.devloom.ai.toolbox.auth.service.LinuxDoOAuthService;
+import com.devloom.ai.toolbox.auth.service.LinuxDoOauthService;
 import com.devloom.ai.toolbox.common.response.ApiResponse;
 import com.devloom.ai.toolbox.common.security.CurrentUser;
 import com.devloom.ai.toolbox.common.web.RequestHeaderExtractor;
@@ -18,17 +18,22 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+/**
+ * 认证相关接口控制器
+ *
+ * @author DevLoom Team
+ */
 @RestController
 @RequestMapping("/api/v1/auth")
 @Validated
 public class AuthController {
 
     private final AuthApplicationService authApplicationService;
-    private final LinuxDoOAuthService linuxDoOAuthService;
+    private final LinuxDoOauthService linuxDoOauthService;
 
-    public AuthController(AuthApplicationService authApplicationService, LinuxDoOAuthService linuxDoOAuthService) {
+    public AuthController(AuthApplicationService authApplicationService, LinuxDoOauthService linuxDoOauthService) {
         this.authApplicationService = authApplicationService;
-        this.linuxDoOAuthService = linuxDoOAuthService;
+        this.linuxDoOauthService = linuxDoOauthService;
     }
 
     /**
@@ -113,7 +118,7 @@ public class AuthController {
     @GetMapping("/oauth/linuxdo/authorize")
     public ApiResponse<LinuxDoAuthorizeResponse> linuxDoAuthorize(
             @RequestParam(value = "redirect_uri", required = false) String redirectUri) {
-        LinuxDoAuthorizeResponse response = linuxDoOAuthService.authorize(redirectUri);
+        LinuxDoAuthorizeResponse response = linuxDoOauthService.authorize(redirectUri);
         return ApiResponse.success(response);
     }
 
@@ -125,7 +130,7 @@ public class AuthController {
     public ApiResponse<TokenResponse> linuxDoCallback(
             @RequestParam("code") @NotBlank(message = "{validation.oauth.code.required}") String code,
             @RequestParam("state") @NotBlank(message = "{validation.oauth.state.required}") String state) {
-        TokenResponse response = linuxDoOAuthService.handleCallback(code, state);
+        TokenResponse response = linuxDoOauthService.handleCallback(code, state);
         return ApiResponse.success(response);
     }
 
@@ -136,7 +141,7 @@ public class AuthController {
     @PostMapping("/bind/linuxdo")
     public ApiResponse<Void> bindLinuxDo(
             @AuthenticationPrincipal CurrentUser currentUser, @Valid @RequestBody BindLinuxDoRequest request) {
-        linuxDoOAuthService.bind(currentUser.getUserId(), request);
+        linuxDoOauthService.bind(currentUser.getUserId(), request);
         return ApiResponse.success(null);
     }
 

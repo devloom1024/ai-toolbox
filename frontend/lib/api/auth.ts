@@ -1,5 +1,5 @@
-import { request, apiClient } from '../api-client'
-import type { ApiResponse, TokenResponse } from '../api-client'
+import { request } from '../api-client'
+import type { TokenResponse } from '../api-client'
 import type { ErrorHandlerConfig } from '../error-handler'
 
 /**
@@ -68,14 +68,6 @@ export interface ProfileResponse {
 export interface LinuxDoAuthorizeResponse {
   state: string
   authorizeUrl: string
-}
-
-/**
- * LinuxDo OAuth 回调参数
- */
-export interface LinuxDoCallbackParams {
-  code: string
-  state: string
 }
 
 /**
@@ -161,6 +153,7 @@ export const authApi = {
   /**
    * 获取 LinuxDo OAuth 授权链接
    * @param redirectUri 回调地址（前端页面地址）
+   * @param errorHandler 错误处理配置
    */
   linuxDoAuthorize: (redirectUri: string, errorHandler?: ErrorHandlerConfig) => {
     const params = new URLSearchParams()
@@ -193,4 +186,4 @@ export const authApi = {
   },
 }
 
-export type { ApiResponse, TokenResponse, LinuxDoAuthorizeResponse, LinuxDoCallbackParams }
+export type { ApiResponse, TokenResponse } from '../api-client'

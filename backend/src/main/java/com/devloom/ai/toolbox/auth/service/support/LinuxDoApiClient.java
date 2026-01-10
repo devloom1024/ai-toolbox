@@ -14,6 +14,11 @@ import org.springframework.web.client.RestTemplate;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
+/**
+ * LinuxDo API 客户端
+ *
+ * @author DevLoom Team
+ */
 @Component
 @RequiredArgsConstructor
 @Slf4j

@@ -17,20 +17,27 @@ import com.devloom.ai.toolbox.auth.service.support.LinuxDoApiClient.UserInfo;
 import com.devloom.ai.toolbox.common.exception.BizErrorCode;
 import com.devloom.ai.toolbox.common.exception.BizException;
 import com.devloom.ai.toolbox.common.util.RandomUtil;
+
 import java.time.Clock;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.util.UriComponentsBuilder;
 
+/**
+ * LinuxDo OAuth 认证服务
+ *
+ * @author DevLoom Team
+ */
 @Service
 @RequiredArgsConstructor
-public class LinuxDoOAuthService {
+public class LinuxDoOauthService {
 
     private final AuthProperties authProperties;
     private final LinuxDoApiClient linuxDoApiClient;
@@ -220,12 +227,14 @@ public class LinuxDoOAuthService {
     }
 
     private String escapeJson(String value) {
-        if (value == null) return "";
+        if (value == null) {
+            return "";
+        }
         return value.replace("\\", "\\\\")
-                   .replace("\"", "\\\"")
-                   .replace("\n", "\\n")
-                   .replace("\r", "\\r")
-                   .replace("\t", "\\t");
+                .replace("\"", "\\\"")
+                .replace("\n", "\\n")
+                .replace("\r", "\\r")
+                .replace("\t", "\\t");
     }
 
     private void validateConfigured(AuthProperties.LinuxDoProperties props) {
