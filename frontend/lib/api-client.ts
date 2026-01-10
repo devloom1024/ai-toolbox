@@ -1,6 +1,7 @@
 import axios from 'axios'
 import type { ErrorHandlerConfig } from './error-handler'
 import { showApiError } from './error-handler'
+import { authApi } from './api/auth'
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080"
 
@@ -51,6 +52,43 @@ const apiClient = axios.create({
   baseURL: API_BASE_URL,
 })
 
+const ACCESS_TOKEN_KEY = 'access_token'
+const REFRESH_TOKEN_KEY = 'refresh_token'
+
+let isRefreshing = false
+let failedRequestsQueue: Array<{
+  resolve: (token: string) => void
+  reject: (error: Error) => void
+}> = []
+
+function processQueue(token?: string, error?: Error) {
+  failedRequestsQueue.forEach(({ resolve, reject }) => {
+    if (error) {
+      reject(error)
+    } else {
+      resolve(token!)
+    }
+  })
+  failedRequestsQueue = []
+}
+
+async function doRefreshToken(): Promise<{ accessToken: string; refreshToken: string }> {
+  const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY)
+  if (!refreshToken) {
+    throw new Error('No refresh token available')
+  }
+  const response = await authApi.refreshToken(refreshToken)
+  if (response.code !== 0 || !response.data) {
+    throw new Error(response.message || 'Token refresh failed')
+  }
+  return response.data
+}
+
+function clearAuthData() {
+  localStorage.removeItem(ACCESS_TOKEN_KEY)
+  localStorage.removeItem(REFRESH_TOKEN_KEY)
+}
+
 apiClient.interceptors.request.use(
   (config) => {
     if (typeof window !== 'undefined') {
@@ -69,18 +107,75 @@ apiClient.interceptors.request.use(
   (error) => Promise.reject(error)
 )
 
+interface ExtendedAxiosConfig {
+  _retry?: boolean
+  errorHandler?: ErrorHandlerConfig
+  headers?: Record<string, string>
+  url?: string
+}
+
 apiClient.interceptors.response.use(
   (response) => response,
-  (error) => {
-    const config = error.config as any
-    const errorHandler = config?.errorHandler
+  async (error) => {
+    const originalRequest = error.config as ExtendedAxiosConfig
+    const errorHandler = originalRequest?.errorHandler
 
     if (error.response) {
+      const status = error.response.status
+
+      if (status === 401 && !originalRequest._retry) {
+        originalRequest._retry = true
+
+        if (!isRefreshing) {
+          isRefreshing = true
+
+          try {
+            const tokens = await doRefreshToken()
+            localStorage.setItem(ACCESS_TOKEN_KEY, tokens.accessToken)
+            localStorage.setItem(REFRESH_TOKEN_KEY, tokens.refreshToken)
+
+            apiClient.defaults.headers.common['Authorization'] = `Bearer ${tokens.accessToken}`
+            if (originalRequest.headers) {
+              originalRequest.headers['Authorization'] = `Bearer ${tokens.accessToken}`
+            }
+
+            processQueue(tokens.accessToken)
+
+            return apiClient(originalRequest)
+          } catch (refreshError) {
+            processQueue(undefined, refreshError as Error)
+            clearAuthData()
+
+            if (typeof window !== 'undefined' && !window.location.pathname.includes('/login')) {
+              window.location.href = '/login?reason=session_expired'
+            }
+
+            return Promise.reject(refreshError)
+          } finally {
+            isRefreshing = false
+          }
+        }
+
+        return new Promise((resolve, reject) => {
+          failedRequestsQueue.push({
+            resolve: (token: string) => {
+              if (originalRequest.headers) {
+                originalRequest.headers['Authorization'] = `Bearer ${token}`
+              }
+              resolve(apiClient(originalRequest))
+            },
+            reject: (err: Error) => {
+              reject(err)
+            },
+          })
+        })
+      }
+
       const message = error.response.data?.message || error.response.statusText || '请求失败'
       const err = new Error(message) as Error & { status: number; statusText: string; url: string }
-      err.status = error.response.status
+      err.status = status
       err.statusText = error.response.statusText
-      err.url = error.config?.url || ''
+      err.url = originalRequest?.url || ''
 
       if (!errorHandler?.showToast) {
         return Promise.reject(err)
