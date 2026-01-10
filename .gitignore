@@ -4,3 +4,4 @@
 backend/.env
 
 *.local.json
+.tmp
