@@ -184,6 +184,69 @@
       "confirm": "确认",
       "save": "保存",
       "saving": "保存中...",
+      "actions": "操作",
+      "edit": "编辑",
+      "delete": "删除",
+      "viewDetail": "查看详情",
+      "backToList": "返回列表",
+      "search": {
+        "placeholder": "搜索账号名称...",
+        "noResults": "未找到匹配的账号",
+        "adjustFilters": "尝试调整搜索条件或筛选器"
+      },
+      "filter": {
+        "type": "筛选类型",
+        "allTypes": "全部类型"
+      },
+      "sort": {
+        "name": "名称",
+        "assets": "资产",
+        "positions": "持仓",
+        "createdAt": "创建时间"
+      },
+      "batch": {
+        "selected": "已选",
+        "exportSelected": "导出选中",
+        "batchDelete": "批量删除",
+        "confirmBatchDelete": "确认批量删除",
+        "batchDeleteWarning": "您确定要删除选中的 {count} 个账号吗？此操作无法撤销。",
+        "batchDeleteSuccess": "成功删除 {count} 个账号",
+        "exportSuccess": "已导出 {count} 个账号"
+      },
+      "viewMode": {
+        "table": "表格视图",
+        "grid": "卡片视图"
+      },
+      "export": "导出",
+      "stats": {
+        "totalAccounts": "总账号数",
+        "totalAssets": "总资产",
+        "totalPositions": "总持仓数",
+        "activeAccounts": "活跃账号",
+        "accountsUnit": "个",
+        "assetsChange": "较上月",
+        "distributedIn": "分布在",
+        "returnRate": "收益率",
+        "cumulativeReturn": "累计收益"
+      },
+      "empty": {
+        "title": "暂无投资账号",
+        "description": "添加您的第一个投资账号来开始管理您的资产组合"
+      },
+      "detail": {
+        "accountInfo": "账号信息",
+        "accountInfoDesc": "查看和管理账号的详细信息",
+        "positionList": "持仓列表",
+        "positionListDesc": "该账号下的所有投资持仓",
+        "positionListPlaceholder": "持仓管理功能即将上线...",
+        "status": "状态",
+        "visibility": "可见性",
+        "visible": "可见",
+        "hidden": "已隐藏",
+        "active": "活跃",
+        "inactive": "未激活",
+        "createdAt": "创建时间"
+      },
       "fields": {
         "accountType": "账号类型",
         "accountName": "账号名称",
@@ -210,9 +273,13 @@
         "accountNameRequired": "请输入账号名称"
       },
       "messages": {
+        "loadError": "加载账号列表失败",
         "createSuccess": "账号创建成功",
+        "createError": "创建账号失败",
         "updateSuccess": "账号更新成功",
-        "deleteSuccess": "账号删除成功"
+        "updateError": "更新账号失败",
+        "deleteSuccess": "账号删除成功",
+        "deleteError": "删除账号失败"
       }
     }
   }

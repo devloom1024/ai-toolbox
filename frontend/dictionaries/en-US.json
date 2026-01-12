@@ -184,6 +184,69 @@
       "confirm": "Confirm",
       "save": "Save",
       "saving": "Saving...",
+      "actions": "Actions",
+      "edit": "Edit",
+      "delete": "Delete",
+      "viewDetail": "View Details",
+      "backToList": "Back to List",
+      "search": {
+        "placeholder": "Search account name...",
+        "noResults": "No matching accounts found",
+        "adjustFilters": "Try adjusting your search or filters"
+      },
+      "filter": {
+        "type": "Filter Type",
+        "allTypes": "All Types"
+      },
+      "sort": {
+        "name": "Name",
+        "assets": "Assets",
+        "positions": "Positions",
+        "createdAt": "Created"
+      },
+      "batch": {
+        "selected": "selected",
+        "exportSelected": "Export Selected",
+        "batchDelete": "Batch Delete",
+        "confirmBatchDelete": "Confirm Batch Delete",
+        "batchDeleteWarning": "Are you sure you want to delete {count} selected accounts? This action cannot be undone.",
+        "batchDeleteSuccess": "Successfully deleted {count} accounts",
+        "exportSuccess": "Exported {count} accounts"
+      },
+      "viewMode": {
+        "table": "Table View",
+        "grid": "Grid View"
+      },
+      "export": "Export",
+      "stats": {
+        "totalAccounts": "Total Accounts",
+        "totalAssets": "Total Assets",
+        "totalPositions": "Total Positions",
+        "activeAccounts": "Active",
+        "accountsUnit": "accounts",
+        "assetsChange": "vs last month",
+        "distributedIn": "Distributed in",
+        "returnRate": "Return Rate",
+        "cumulativeReturn": "Cumulative Return"
+      },
+      "empty": {
+        "title": "No Investment Accounts",
+        "description": "Add your first investment account to start managing your portfolio"
+      },
+      "detail": {
+        "accountInfo": "Account Information",
+        "accountInfoDesc": "View and manage account details",
+        "positionList": "Position List",
+        "positionListDesc": "All investment positions under this account",
+        "positionListPlaceholder": "Position management feature coming soon...",
+        "status": "Status",
+        "visibility": "Visibility",
+        "visible": "Visible",
+        "hidden": "Hidden",
+        "active": "Active",
+        "inactive": "Inactive",
+        "createdAt": "Created At"
+      },
       "fields": {
         "accountType": "Account Type",
         "accountName": "Account Name",
@@ -210,9 +273,13 @@
         "accountNameRequired": "Please enter account name"
       },
       "messages": {
+        "loadError": "Failed to load accounts",
         "createSuccess": "Account created successfully",
+        "createError": "Failed to create account",
         "updateSuccess": "Account updated successfully",
-        "deleteSuccess": "Account deleted successfully"
+        "updateError": "Failed to update account",
+        "deleteSuccess": "Account deleted successfully",
+        "deleteError": "Failed to delete account"
       }
     }
   }

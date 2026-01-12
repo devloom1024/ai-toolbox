@@ -990,654 +990,1248 @@ paths:
 
 components:
   schemas:
-    # 通用
+    # 通用响应
     ApiResponse:
       type: object
+      description: 统一 API 响应格式
       properties:
         code:
           type: integer
+          description: 业务状态码，0 表示成功，非 0 表示错误
           example: 0
         message:
           type: string
+          description: 提示信息，成功时为 "ok"，错误时为具体错误信息
           example: "ok"
         data:
           type: object
-    
+          description: 响应数据，成功时返回业务数据，失败时为 null
+        traceId:
+          type: string
+          description: 分布式追踪 ID，用于问题排查
+          example: "550e8400-e29b-41d4-a716-446655440000"
+
+    # 分页响应
     PageResponse:
       type: object
+      description: 分页数据响应格式
       properties:
         page:
           type: integer
+          description: 当前页码，从 1 开始
+          example: 1
         pageSize:
           type: integer
+          description: 每页数据条数
+          example: 20
         total:
           type: integer
+          description: 总数据条数
+          example: 100
         items:
           type: array
+          description: 当前页数据列表
+          items:
+            type: object
 
-    # 投资总览
+    # 投资总览响应
     OverviewResponse:
       type: object
+      description: 投资总览数据，包含多账号汇总信息
       properties:
         totalAssets:
           type: number
-          description: 总资产
+          description: 总资产，单位：元。多账号持仓市值汇总
+          example: 128500.00
         totalProfit:
           type: number
-          description: 总收益
+          description: 总收益，单位：元。当前市值 - 总成本
+          example: 12300.00
         profitRate:
           type: number
-          description: 收益率
+          description: 收益率，保留 4 位小数。计算公式：(总收益 / 总成本) × 100%
+          example: 0.1060
         positionCount:
           type: integer
-          description: 持仓数量
+          description: 持仓数量，不同标的（按 symbol 去重）
+          example: 5
         watchlistCount:
           type: integer
-          description: 自选数量
+          description: 自选股数量
+          example: 12
         todayChange:
           type: number
-          description: 今日涨跌
+          description: 今日涨跌，单位：元。今日市值变化
+          example: 2500.00
+        accounts:
+          type: array
+          description: 各账号资产汇总
+          items:
+            $ref: '#/components/schemas/AccountSummary'
 
+    # 账号汇总（用于总览展示）
+    AccountSummary:
+      type: object
+      description: 账号资产汇总信息
+      properties:
+        accountId:
+          type: integer
+          description: 账号 ID
+          example: 1
+        accountName:
+          type: string
+          description: 账号名称
+          example: "东方财富 A 股"
+        accountType:
+          type: string
+          description: 账号类型
+          enum: [BROKER, FUND_PLATFORM, BANK, ALIPAY, OTHER]
+          example: "BROKER"
+        totalAssets:
+          type: number
+          description: 该账号总资产
+          example: 65000.00
+        positionCount:
+          type: integer
+          description: 该账号持仓数量
+          example: 3
+
+    # 用户投资设置响应
     UserSettingResponse:
       type: object
+      description: 用户投资偏好设置
       properties:
         riskTolerance:
           type: string
+          description: |
+            风险承受能力等级：
+            - CONSERVATIVE：保守型，追求稳定收益，能接受较小波动
+            - MODERATE：稳健型，追求平衡收益与风险
+            - AGGRESSIVE：激进型，追求高收益，能承受较大波动
           enum: [CONSERVATIVE, MODERATE, AGGRESSIVE]
+          example: "MODERATE"
         investmentGoal:
           type: string
+          description: |
+            投资目标：
+            - PRESERVATION：保值增值，跑赢通胀，稳健增长
+            - GROWTH：追求高收益，愿意承担风险，追求超额回报
           enum: [PRESERVATION, GROWTH]
+          example: "PRESERVATION"
         experienceLevel:
           type: string
+          description: |
+            投资经验水平：
+            - BEGINNER：入门投资者，刚开始接触投资，需要更多解释和指导
+            - INTERMEDIATE：中级投资者，有一定经验，希望获得高效的决策支持
+            - ADVANCED：高级投资者，经验丰富，需要深度分析
           enum: [BEGINNER, INTERMEDIATE, ADVANCED]
+          example: "INTERMEDIATE"
         pushEnabled:
           type: boolean
+          description: 是否开启消息推送
+          example: true
         pushConfig:
           $ref: '#/components/schemas/PushConfig'
+          description: 推送配置详情
 
+    # 用户投资设置更新请求
     UserSettingUpdateRequest:
       type: object
+      description: 用户投资偏好设置更新请求
       properties:
         riskTolerance:
           type: string
+          description: 风险承受能力等级
           enum: [CONSERVATIVE, MODERATE, AGGRESSIVE]
         investmentGoal:
           type: string
+          description: 投资目标
           enum: [PRESERVATION, GROWTH]
         experienceLevel:
           type: string
+          description: 投资经验水平
           enum: [BEGINNER, INTERMEDIATE, ADVANCED]
 
-    # 自选管理
+    # 投资账号响应
     AccountResponse:
       type: object
+      description: 投资账号信息
       properties:
         id:
           type: integer
+          description: 账号主键，关联 t_account.id
+          example: 1
         accountType:
           type: string
+          description: |
+            账号类型：
+            - BROKER：券商账号，用于股票、场内ETF
+            - FUND_PLATFORM：基金平台，用于场外基金
+            - ALIPAY：支付宝，用于基金、理财
+            - BANK：银行账号，用于银行理财
+            - OTHER：其他平台，如雪球、东方财富自选股等
           enum: [BROKER, FUND_PLATFORM, BANK, ALIPAY, OTHER]
+          example: "BROKER"
         accountName:
           type: string
+          description: 账号名称（用户自定义，如"东方财富A股"）
+          example: "东方财富 A 股"
         accountIcon:
           type: string
+          description: 账号图标 URL
+          example: "https://example.com/icons/broker.png"
         isActive:
           type: boolean
+          description: 是否启用，禁用的账号不参与汇总计算
+          example: true
         isHidden:
           type: boolean
+          description: 是否隐藏，隐藏的账号不在列表显示
+          example: false
         sortOrder:
           type: integer
+          description: 排序序号，数值越小越靠前
+          example: 0
         positionCount:
           type: integer
+          description: 该账号下的持仓数量
+          example: 3
         totalAssets:
           type: number
+          description: 该账号总资产，单位：元
+          example: 65000.00
         createdAt:
           type: string
+          description: 创建时间，ISO 8601 格式
           format: date-time
+          example: "2024-01-15T10:30:00Z"
 
+    # 创建账号请求
     AccountCreateRequest:
       type: object
+      description: 添加投资账号请求
       required:
         - accountType
         - accountName
       properties:
         accountType:
           type: string
+          description: 账号类型
           enum: [BROKER, FUND_PLATFORM, BANK, ALIPAY, OTHER]
+          example: "BROKER"
         accountName:
           type: string
+          description: 账号名称，同一用户下不能重复，最大长度 64 字符
+          example: "东方财富 A 股"
         accountIcon:
           type: string
+          description: 账号图标 URL，最大长度 512 字符
+          default: ""
+          example: "https://example.com/icons/broker.png"
         sortOrder:
           type: integer
+          description: 排序序号，不传则默认 0
           default: 0
+          example: 0
 
+    # 更新账号请求
     AccountUpdateRequest:
       type: object
+      description: 更新投资账号请求
       properties:
         accountName:
           type: string
+          description: 账号名称，同一用户下不能重复
+          example: "华泰证券 A 股"
         accountType:
           type: string
+          description: 账号类型
           enum: [BROKER, FUND_PLATFORM, BANK, ALIPAY, OTHER]
         accountIcon:
           type: string
+          description: 账号图标 URL
         isActive:
           type: boolean
+          description: 是否启用
         isHidden:
           type: boolean
+          description: 是否隐藏
         sortOrder:
           type: integer
+          description: 排序序号
 
+    # 自选股列表响应
     WatchlistResponse:
       allOf:
         - $ref: '#/components/schemas/PageResponse'
         - type: object
+          description: 自选股分页列表响应
           properties:
             items:
               type: array
+              description: 当前页自选股列表
               items:
                 $ref: '#/components/schemas/WatchlistItem'
 
+    # 自选股列表项
     WatchlistItem:
       type: object
+      description: 自选股列表项
       properties:
         id:
           type: integer
+          description: 自选记录 ID，关联 t_watchlist.id
+          example: 1
         symbol:
           type: string
+          description: 股票/基金代码
+          example: "600519"
         market:
           type: string
+          description: |
+            市场类型：
+            - A_SHARE：A 股
+            - HK：港股
+            - US：美股
+            - ETF：交易所交易基金
+            - FUND：场外基金
+          enum: [A_SHARE, HK, US, ETF, FUND]
+          example: "A_SHARE"
         name:
           type: string
+          description: 股票/基金名称
+          example: "贵州茅台"
         currentPrice:
           type: number
+          description: 当前价格/净值，单位：元 或 美元
+          example: 1850.00
         changePercent:
           type: number
+          description: 涨跌幅，保留 2 位小数，如 1.23 表示涨 1.23%
+          example: 1.23
         recommendation:
           type: string
+          description: |
+            AI 建仓建议：
+            - BUILD_POSITION：建仓推荐
+            - HOLD：持有
+            - WAIT：观望
+            - AVOID：回避
+          enum: [BUILD_POSITION, HOLD, WAIT, AVOID]
+          example: "BUILD_POSITION"
         confidence:
           type: number
+          description: 置信度，0-100，表示 AI 建议的可信程度
+          example: 78
         groupId:
           type: integer
+          description: 分组 ID，关联 t_watchlist_group.id，null 表示未分组
+          example: 1
+        groupName:
+          type: string
+          description: 分组名称
+          example: "热门股票"
+        addedAt:
+          type: string
+          description: 添加时间
+          format: date-time
+          example: "2024-01-15T10:30:00Z"
 
+    # 添加自选请求
     WatchlistAddRequest:
       type: object
+      description: 添加自选股请求
       required:
         - symbol
         - market
       properties:
         symbol:
           type: string
+          description: 股票/基金代码
+          example: "600519"
         market:
           type: string
+          description: 市场类型
           enum: [A_SHARE, HK, US, ETF, FUND]
+          example: "A_SHARE"
         name:
           type: string
+          description: 股票/基金名称，不传则自动查询
+          example: "贵州茅台"
         groupId:
           type: integer
+          description: 分组 ID，不传则添加到默认分组
+          example: 1
 
+    # 自选分组
     WatchlistGroup:
       type: object
+      description: 自选股分组
       properties:
         id:
           type: integer
+          description: 分组 ID，关联 t_watchlist_group.id
+          example: 1
         name:
           type: string
+          description: 分组名称
+          example: "热门股票"
         sortOrder:
           type: integer
+          description: 排序序号
+          example: 0
         itemCount:
           type: integer
+          description: 该分组下的自选股数量
+          example: 8
+        createdAt:
+          type: string
+          description: 创建时间
+          format: date-time
 
+    # 创建分组请求
     WatchlistGroupCreateRequest:
       type: object
+      description: 创建自选分组请求
       required:
         - name
       properties:
         name:
           type: string
+          description: 分组名称，最大长度 64 字符
+          example: "我的自选"
+        sortOrder:
+          type: integer
+          description: 排序序号，不传则默认 0
+          default: 0
 
+    # 股票搜索结果
     StockSearchResult:
       type: object
+      description: 股票搜索结果项
       properties:
         symbol:
           type: string
+          description: 股票/基金代码
+          example: "600519"
         name:
           type: string
+          description: 股票/基金名称
+          example: "贵州茅台"
         market:
           type: string
+          description: 市场类型
+          enum: [A_SHARE, HK, US, ETF, FUND]
+          example: "A_SHARE"
         type:
           type: string
+          description: |
+            标的类型：
+            - STOCK：股票
+            - ETF：交易所交易基金
+            - FUND：场外基金
+            - INDEX：指数
+          enum: [STOCK, ETF, FUND, INDEX]
+          example: "STOCK"
+        fullCode:
+          type: string
+          description: 完整代码（含市场前缀，如 SH600519）
+          example: "SH600519"
+        pinyin:
+          type: string
+          description: 拼音简拼
+          example: "GZMT"
+        industry:
+          type: string
+          description: 所属行业
+          example: "白酒"
 
     # ============ 持仓管理 ============
     PositionListResponse:
       allOf:
         - $ref: '#/components/schemas/PageResponse'
         - type: object
+          description: 持仓分页列表响应
           properties:
             items:
               type: array
+              description: 当前页持仓列表
               items:
                 $ref: '#/components/schemas/PositionItem'
 
+    # 持仓列表项
     PositionItem:
       type: object
+      description: 持仓列表项
       properties:
         id:
           type: integer
+          description: 持仓记录 ID，关联 t_position.id
+          example: 1
+        accountId:
+          type: integer
+          description: 账号 ID，关联 t_account.id
+          example: 1
+        accountName:
+          type: string
+          description: 账号名称
+          example: "东方财富 A 股"
         symbol:
           type: string
+          description: 股票/基金代码
+          example: "600519"
         market:
           type: string
+          description: 市场类型
+          enum: [A_SHARE, HK, US, ETF, FUND]
+          example: "A_SHARE"
         name:
           type: string
+          description: 股票/基金名称
+          example: "贵州茅台"
         positionType:
           type: string
+          description: |
+            持仓类型：
+            - STOCK：股票
+            - ETF：交易所交易基金
+            - FUND：场外基金
           enum: [STOCK, ETF, FUND]
+          example: "STOCK"
         # 股票/ETF 字段
         shares:
           type: number
+          description: 持仓股数，单位：股
+          example: 100
         avgCost:
           type: number
+          description: 平均成本价，单位：元/股
+          example: 1680.00
         # 基金字段
         amount:
           type: number
+          description: 持仓金额，单位：元（FUND 类型使用）
+          example: 50000.00
         profit:
           type: number
+          description: 持仓收益，单位：元（FUND 类型使用）
+          example: 5200.00
         # 计算字段
         currentPrice:
           type: number
+          description: 当前价格/净值，单位：元/股 或 元/份
+          example: 1850.00
         currentValue:
           type: number
+          description: 当前市值，单位：元。股票/ETF=份额×现价，基金=金额+收益
+          example: 185000.00
         profitRate:
           type: number
+          description: 收益率，保留 4 位小数。股票/ETF=(市值-成本)/成本，基金=收益/金额
+          example: 0.1012
         createdAt:
           type: string
+          description: 首次录入时间
           format: date-time
+          example: "2024-01-15T10:30:00Z"
+        updatedAt:
+          type: string
+          description: 最后更新时间
+          format: date-time
+          example: "2024-03-20T14:00:00Z"
 
+    # 创建持仓请求
     PositionCreateRequest:
       type: object
+      description: 添加持仓请求（首次录入）
       required:
         - symbol
         - market
         - positionType
+        - accountId
       properties:
+        accountId:
+          type: integer
+          description: 账号 ID，关联 t_account.id
+          example: 1
         symbol:
           type: string
+          description: 股票/基金代码
+          example: "600519"
         market:
           type: string
+          description: 市场类型
+          enum: [A_SHARE, HK, US, ETF, FUND]
+          example: "A_SHARE"
         name:
           type: string
+          description: 股票/基金名称
+          example: "贵州茅台"
         positionType:
           type: string
+          description: 持仓类型
           enum: [STOCK, ETF, FUND]
+          example: "STOCK"
         # 股票/ETF 录入
         shares:
           type: number
-          description: 持仓份额（股票/ETF使用）
+          description: 持仓份额，单位：股。positionType=STOCK 或 ETF 时必填，必须 > 0
+          example: 100
         avgCost:
           type: number
-          description: 平均成本价（股票/ETF使用）
+          description: 平均成本价，单位：元/股。positionType=STOCK 或 ETF 时必填，必须 > 0
+          example: 1680.00
         # 基金录入
         amount:
           type: number
-          description: 持仓金额（基金使用，单位：元）
+          description: 持仓金额，单位：元。positionType=FUND 时必填，必须 > 0
+          example: 50000.00
         profit:
           type: number
-          description: 持仓收益（基金使用，单位：元）
+          description: 持仓收益，单位：元。positionType=FUND 时使用，可为负数
+          example: 5200.00
         notes:
           type: string
-          description: 备注
+          description: 备注（可选，记录持仓原因等）
+          maxLength: 255
+          example: "长期持有"
 
+    # 持仓详情响应
     PositionDetailResponse:
       type: object
+      description: 持仓详情响应
       properties:
         id:
           type: integer
+          description: 持仓记录 ID
+          example: 1
+        accountId:
+          type: integer
+          description: 账号 ID
+          example: 1
+        accountName:
+          type: string
+          description: 账号名称
+          example: "东方财富 A 股"
         symbol:
           type: string
+          description: 股票/基金代码
+          example: "600519"
         market:
           type: string
+          description: 市场类型
+          enum: [A_SHARE, HK, US, ETF, FUND]
+          example: "A_SHARE"
         name:
           type: string
+          description: 股票/基金名称
+          example: "贵州茅台"
         positionType:
           type: string
+          description: 持仓类型
+          enum: [STOCK, ETF, FUND]
+          example: "STOCK"
         # 持仓信息
         shares:
           type: number
+          description: 持仓股数
+          example: 100
         avgCost:
           type: number
+          description: 平均成本价
+          example: 1680.00
         amount:
           type: number
+          description: 持仓金额（基金）
+          example: 50000.00
         profit:
           type: number
+          description: 持仓收益（基金）
+          example: 5200.00
         currentPrice:
           type: number
+          description: 当前价格/净值
+          example: 1850.00
         currentValue:
           type: number
+          description: 当前市值
+          example: 185000.00
         profitRate:
           type: number
+          description: 收益率
+          example: 0.1012
         # 交易记录
         trades:
           type: array
+          description: 交易记录列表
           items:
             $ref: '#/components/schemas/PositionTradeRecord'
         createdAt:
           type: string
+          description: 创建时间
           format: date-time
         updatedAt:
           type: string
+          description: 更新时间
           format: date-time
 
+    # 交易请求（加仓/减仓）
     PositionTradeRequest:
       type: object
+      description: 加仓/减仓请求
       required:
         - tradeType
         - price
       properties:
         tradeType:
           type: string
+          description: |
+            交易类型：
+            - BUY：买入/加仓
+            - SELL：卖出/减仓
           enum: [BUY, SELL]
-          description: BUY=买入/加仓 SELL=卖出/减仓
+          example: "BUY"
         # 股票/ETF 交易
         shares:
           type: number
-          description: 交易份额（股票/ETF使用）
+          description: 交易份额，单位：股。tradeType=BUY 或 SELL 时使用
+          example: 50
         # 基金交易
         amount:
           type: number
-          description: 交易金额（基金使用，单位：元）
+          description: 交易金额，单位：元。tradeType=BUY 时使用（基金买入）
+          example: 10000.00
         price:
           type: number
-          description: 成交价格/净值
+          description: 成交价格/净值。必填，用于计算成本和收益
+          example: 1820.00
         tradeFee:
           type: number
-          description: 交易费用
+          description: 交易费用，单位：元。手续费、佣金等
+          default: 0
+          example: 25.00
         notes:
           type: string
-          description: 备注
+          description: 备注（可选，记录交易原因等）
+          maxLength: 255
+          example: "加仓"
 
+    # 交易响应
     PositionTradeResponse:
       type: object
+      description: 加仓/减仓操作响应
       properties:
         tradeId:
           type: integer
+          description: 交易记录 ID，关联 t_position_trade.id
+          example: 1
         positionId:
           type: integer
+          description: 持仓记录 ID
+          example: 1
+        tradeType:
+          type: string
+          description: 交易类型
+          enum: [BUY, SELL]
+          example: "BUY"
         # 更新后的持仓
         shares:
           type: number
+          description: 更新后的持仓股数
+          example: 150
         avgCost:
           type: number
+          description: 更新后的平均成本价。买入时重新计算，卖出时不变
+          example: 1720.00
         amount:
           type: number
+          description: 更新后的持仓金额（基金）
+          example: 60000.00
         profit:
           type: number
+          description: 更新后的持仓收益（基金）
+          example: 6500.00
         currentValue:
           type: number
+          description: 更新后的市值
+          example: 277500.00
         profitRate:
           type: number
+          description: 更新后的收益率
+          example: 0.0985
+        tradeProfit:
+          type: number
+          description: 本次交易收益（减仓时返回）
+          example: 495.10
         message:
           type: string
+          description: 操作结果提示信息
+          example: "加仓成功，新平均成本价为 1720.00 元"
 
+    # 交易记录
     PositionTradeRecord:
       type: object
+      description: 持仓交易记录
       properties:
         id:
           type: integer
+          description: 交易记录 ID，关联 t_position_trade.id
+          example: 1
         positionId:
           type: integer
+          description: 关联的持仓 ID
+          example: 1
+        accountId:
+          type: integer
+          description: 账号 ID
+          example: 1
+        accountName:
+          type: string
+          description: 账号名称
+          example: "东方财富 A 股"
         tradeType:
           type: string
+          description: 交易类型
           enum: [BUY, SELL]
+          example: "BUY"
         shares:
           type: number
+          description: 成交份额，单位：股
+          example: 50
         amount:
           type: number
+          description: 成交金额，单位：元
+          example: 91000.00
         price:
           type: number
+          description: 成交价格/净值
+          example: 1820.00
         tradeFee:
           type: number
+          description: 交易费用
+          example: 25.00
+        profit:
+          type: number
+          description: 本次交易收益（减仓时计算）
+          example: 495.10
         notes:
           type: string
+          description: 备注
+          example: "加仓"
         tradeAt:
           type: string
+          description: 交易时间
+          format: date-time
+          example: "2024-03-20T14:00:00Z"
+        createdAt:
+          type: string
+          description: 记录创建时间
           format: date-time
 
     # AI 分析
     AnalysisRequest:
       type: object
+      description: AI 建仓分析请求
       required:
         - symbol
         - market
       properties:
         symbol:
           type: string
+          description: 股票/基金代码
+          example: "600519"
         market:
           type: string
+          description: 市场类型
+          enum: [A_SHARE, HK, US, ETF, FUND]
+          example: "A_SHARE"
         name:
           type: string
+          description: 股票/基金名称（可选，不传则自动查询）
 
     AnalysisResponse:
       type: object
+      description: AI 建仓分析响应
       properties:
         symbol:
           type: string
+          description: 股票/基金代码
+          example: "600519"
         market:
           type: string
+          description: 市场类型
+          enum: [A_SHARE, HK, US, ETF, FUND]
+          example: "A_SHARE"
         name:
           type: string
+          description: 股票/基金名称
+          example: "贵州茅台"
         currentPrice:
           type: number
+          description: 当前价格/净值
+          example: 1850.00
         changePercent:
           type: number
+          description: 涨跌幅，如 1.23 表示涨 1.23%
+          example: 1.23
         recommendation:
           type: string
+          description: |
+            AI 建议：
+            - BUILD_POSITION：建仓推荐
+            - HOLD：持有
+            - WAIT：观望
+            - AVOID：回避
           enum: [BUILD_POSITION, HOLD, WAIT, AVOID]
+          example: "BUILD_POSITION"
         confidence:
           type: number
+          description: 置信度，0-100。90-100% 强烈建议，70-89% 较强建议，50-69% 中性，30-49% 较弱，<30% 不明确
+          example: 78
         analysis:
           type: object
+          description: 多维度分析结果
           properties:
             technical:
               $ref: '#/components/schemas/TechnicalAnalysis'
+              description: 技术面分析
             fundamental:
               $ref: '#/components/schemas/FundamentalAnalysis'
+              description: 基本面分析
             news:
               $ref: '#/components/schemas/NewsAnalysis'
+              description: 消息面分析
             capital:
               $ref: '#/components/schemas/CapitalAnalysis'
+              description: 资金面分析
         suggestion:
           $ref: '#/components/schemas/TradingSuggestion'
+          description: 交易建议（入场价、止损价、止盈价等）
         riskWarning:
           type: string
+          description: 风险提示
+          example: "当前市场波动率较高，建议控制仓位"
         dataSources:
           type: array
+          description: 数据来源列表
           items:
             type: string
+            description: 数据源名称
+          example: ["akshare", "yfinance"]
         analyzedAt:
           type: string
+          description: 分析时间
           format: date-time
+          example: "2024-03-20T14:30:00Z"
 
     HoldAnalysisRequest:
       type: object
+      description: AI 持仓分析请求
       required:
         - positions
       properties:
         positions:
           type: array
+          description: 要分析的持仓列表（多账号汇总）
           items:
             $ref: '#/components/schemas/PositionInput'
 
     HoldAnalysisResponse:
       type: object
+      description: AI 持仓分析响应
       properties:
         totalAssets:
           type: number
+          description: 总资产，单位：元
+          example: 128500.00
         totalProfit:
           type: number
+          description: 总收益，单位：元
+          example: 12300.00
         profitRate:
           type: number
+          description: 收益率
+          example: 0.106
         items:
           type: array
+          description: 各持仓分析结果
           items:
             $ref: '#/components/schemas/HoldAnalysisItem'
         riskWarning:
           type: string
+          description: 风险提示
+          example: "金融板块占比偏高(35%)，受利率影响较大"
         suggestion:
           type: string
+          description: 整体操作建议
+          example: "建议关注中国平安的下跌风险，可考虑减仓"
 
     AnalysisHistoryResponse:
       allOf:
         - $ref: '#/components/schemas/PageResponse'
         - type: object
+          description: AI 分析历史响应
           properties:
             items:
               type: array
+              description: 分析历史列表
               items:
                 $ref: '#/components/schemas/AnalysisHistoryItem'
 
     # 板块分析
     SectorRankingResponse:
       type: object
+      description: 板块排行响应
       properties:
         ranking:
           type: array
+          description: 板块排行列表
           items:
             $ref: '#/components/schemas/SectorRankingItem'
         updatedAt:
           type: string
+          description: 数据更新时间
           format: date-time
+          example: "2024-03-20T15:00:00Z"
 
     SectorRankingItem:
       type: object
+      description: 板块排行项
       properties:
         rank:
           type: integer
+          description: 排名序号
+          example: 1
         sectorId:
           type: string
+          description: 板块 ID
+          example: "sector_001"
         sectorName:
           type: string
+          description: 板块名称
+          example: "半导体"
         changePercent:
           type: number
+          description: 今日涨幅，如 3.2 表示涨 3.2%
+          example: 3.2
         capitalFlow:
           type: number
+          description: 资金净流入，单位：亿元。正数表示流入，负数表示流出
+          example: 28.5
         tradingActivity:
           type: string
+          description: |
+            交易活跃度：
+            - LOW：冷清
+            - NORMAL：一般
+            - HIGH：活跃
+            - VERY_HIGH：非常活跃
           enum: [LOW, NORMAL, HIGH, VERY_HIGH]
+          example: "VERY_HIGH"
         recommendation:
           type: string
+          description: |
+            AI 建议：
+            - FOCUS：重点关注
+            - HOLD：持有
+            - AVOID：回避
           enum: [FOCUS, HOLD, AVOID]
+          example: "FOCUS"
         confidence:
           type: number
+          description: 置信度，0-100
+          example: 78
         topStocks:
           type: array
+          description: 板块内精选股票
           items:
             $ref: '#/components/schemas/StockRecommendation'
 
     SectorDetailResponse:
       type: object
+      description: 板块详情响应
       properties:
         sectorId:
           type: string
+          description: 板块 ID
+          example: "sector_001"
         sectorName:
           type: string
+          description: 板块名称
+          example: "半导体"
         changePercent:
           type: number
+          description: 今日涨幅
+          example: 3.2
         capitalFlow:
           type: number
+          description: 资金净流入
+          example: 28.5
         tradingActivity:
           type: string
+          description: 交易活跃度
+          enum: [LOW, NORMAL, HIGH, VERY_HIGH]
+          example: "VERY_HIGH"
         recommendation:
           type: string
+          description: AI 建议
+          enum: [FOCUS, HOLD, AVOID]
+          example: "FOCUS"
         confidence:
           type: number
+          description: 置信度
+          example: 78
         analysis:
           type: string
+          description: AI 分析内容
+          example: "AI芯片需求持续旺盛，国产替代逻辑强化"
         recommendStocks:
           type: array
+          description: 推荐股票列表
           items:
             $ref: '#/components/schemas/StockRecommendation'
 
     StockRecommendation:
       type: object
+      description: 股票推荐
       properties:
         symbol:
           type: string
+          description: 股票代码
+          example: "688981"
         name:
           type: string
+          description: 股票名称
+          example: "中芯国际"
         recommendation:
           type: string
+          description: 建仓建议
+          enum: [BUILD_POSITION, HOLD, WAIT, AVOID]
+          example: "BUILD_POSITION"
         confidence:
           type: number
+          description: 置信度
+          example: 82
         changePercent:
           type: number
+          description: 今日涨跌幅
+          example: 4.5
         reason:
           type: string
+          description: 推荐理由
+          example: "AI芯片需求旺盛，业绩超预期"
 
     # 组合分析
     PortfolioAnalysisResponse:
       type: object
+      description: 组合分析响应
       properties:
         totalAssets:
           type: number
+          description: 总资产，单位：元
+          example: 128500.00
         totalProfit:
           type: number
+          description: 总收益，单位：元
+          example: 12300.00
         profitRate:
           type: number
+          description: 收益率
+          example: 0.106
         positions:
           type: array
+          description: 持仓分析列表
           items:
             $ref: '#/components/schemas/PortfolioPosition'
         industryDistribution:
           type: array
+          description: 行业分布
           items:
             $ref: '#/components/schemas/IndustryDistribution'
         correlationMatrix:
           type: object
+          description: 相关性矩阵。key 为股票代码，value 为与其他股票的相关性系数
+          example: {"600519": {"600519": 1, "000001": 0.3}}
         riskWarning:
           type: string
+          description: 风险提示
+          example: "金融板块占比 35%，受利率影响较大"
 
     PortfolioOptimizeResponse:
       type: object
+      description: 组合优化响应
       properties:
         suggestions:
           type: array
+          description: 优化建议列表
           items:
             $ref: '#/components/schemas/OptimizeSuggestion'
 
     # 定投策略
     DcaPlanResponse:
       type: object
+      description: 定投计划响应
       properties:
         id:
           type: integer
+          description: 定投计划 ID
+          example: 1
         name:
           type: string
+          description: 定投计划名称
+          example: "每月定投沪深300"
         symbol:
           type: string
+          description: 标的代码
+          example: "510300"
         market:
           type: string
+          description: 市场类型
+          enum: [A_SHARE, HK, US, ETF, FUND]
+          example: "ETF"
         frequency:
           type: string
+          description: |
+            定投频率：
+            - WEEKLY：每周
+            - BIWEEKLY：每两周
+            - MONTHLY：每月
           enum: [WEEKLY, BIWEEKLY, MONTHLY]
+          example: "MONTHLY"
         amount:
           type: number
+          description: 每次定投金额，单位：元
+          example: 1000.00
         nextDeductionDate:
           type: string
+          description: 下次扣款日期
           format: date
+          example: "2024-04-01"
         status:
           type: string
+          description: |
+            计划状态：
+            - RUNNING：运行中
+            - PAUSED：已暂停
           enum: [RUNNING, PAUSED]
+          example: "RUNNING"
         totalInvested:
           type: number
+          description: 累计投入，单位：元
+          example: 12000.00
         currentValue:
           type: number
+          description: 当前价值，单位：元
+          example: 13500.00
         profitRate:
           type: number
+          description: 收益率
+          example: 0.125
 
     DcaPlanCreateRequest:
       type: object
+      description: 创建定投计划请求
       required:
         - name
         - symbol
@@ -1647,62 +2241,105 @@ components:
       properties:
         name:
           type: string
+          description: 定投计划名称
+          example: "每月定投沪深300"
         symbol:
           type: string
+          description: 标的代码
+          example: "510300"
         market:
           type: string
+          description: 市场类型
+          enum: [A_SHARE, HK, US, ETF, FUND]
+          example: "ETF"
         frequency:
           type: string
+          description: 定投频率
           enum: [WEEKLY, BIWEEKLY, MONTHLY]
+          example: "MONTHLY"
         amount:
           type: number
+          description: 每次定投金额，单位：元
+          example: 1000.00
         startDate:
           type: string
+          description: 开始日期，不传则从下次扣款日开始
           format: date
+          example: "2024-04-01"
 
     DcaPlanUpdateRequest:
       type: object
+      description: 更新定投计划请求
       properties:
         name:
           type: string
+          description: 定投计划名称
         frequency:
           type: string
+          description: 定投频率
+          enum: [WEEKLY, BIWEEKLY, MONTHLY]
         amount:
           type: number
+          description: 每次定投金额
         status:
           type: string
+          description: 计划状态
           enum: [RUNNING, PAUSED]
 
     DcaRecommendResponse:
       type: object
+      description: AI 定投推荐响应
       properties:
         name:
           type: string
+          description: 推荐方案名称
+          example: "稳健增长组合"
         description:
           type: string
+          description: 方案描述
+          example: "适合风险承受能力中等的投资者"
         expectedReturn:
           type: string
+          description: 预期年化收益率
+          example: "8-12%"
         riskLevel:
           type: string
+          description: |
+            风险等级：
+            - LOW：低风险
+            - MODERATE：中等风险
+            - HIGH：高风险
+          example: "MODERATE"
         allocation:
           type: array
+          description: 资金配置方案
           items:
             $ref: '#/components/schemas/DcaAllocation'
 
     DcaAllocation:
       type: object
+      description: 定投标的配置
       properties:
         symbol:
           type: string
+          description: 标的代码
+          example: "510300"
         name:
           type: string
+          description: 标的名称
+          example: "华夏沪深300ETF"
         proportion:
           type: number
+          description: 占比，如 0.6 表示 60%
+          example: 0.6
         reason:
           type: string
+          description: 配置理由
+          example: "沪深300覆盖A股核心资产，长期收益稳定"
 
     DcaSimulateRequest:
       type: object
+      description: 定投模拟请求
       required:
         - initialInvestment
         - monthlyInvestment
@@ -1710,141 +2347,275 @@ components:
       properties:
         symbol:
           type: string
+          description: 标的代码，不传则使用推荐组合
+          example: "510300"
         initialInvestment:
           type: number
+          description: 初始投入金额，单位：元
+          example: 10000.00
         monthlyInvestment:
           type: number
+          description: 每月定投金额，单位：元
+          example: 1000.00
         years:
           type: integer
+          description: 投资年限
+          example: 10
 
     DcaSimulateResponse:
       type: object
+      description: 定投模拟结果
       properties:
         totalInvestment:
           type: number
+          description: 总投入，单位：元
+          example: 130000.00
         expectedValue:
           type: number
+          description: 预期终值，单位：元（基于历史年化收益估算）
+          example: 185000.00
         expectedProfit:
           type: number
+          description: 预期收益，单位：元
+          example: 55000.00
         expectedProfitRate:
           type: number
+          description: 预期收益率
+          example: 0.423
 
     # 策略工作室
     StrategyResponse:
       type: object
+      description: 策略列表项
       properties:
         id:
           type: integer
+          description: 策略 ID
+          example: 1
         name:
           type: string
+          description: 策略名称
+          example: "MA金叉策略"
         type:
           type: string
+          description: |
+            策略类型：
+            - TECHNICAL：技术指标策略
+            - FUNDAMENTAL：基本面策略
+            - MIXED：混合策略
+            - CUSTOM：自定义脚本
+          enum: [TECHNICAL, FUNDAMENTAL, MIXED, CUSTOM]
+          example: "TECHNICAL"
         status:
           type: string
+          description: |
+            策略状态：
+            - DRAFT：草稿
+            - BACKTESTING：回测中
+            - ENABLED：已启用
+            - DISABLED：已禁用
+          enum: [DRAFT, BACKTESTING, ENABLED, DISABLED]
+          example: "ENABLED"
         returnRate:
           type: number
+          description: 最后回测收益率
+          example: 0.158
         lastUpdated:
           type: string
+          description: 最后更新时间
           format: date-time
+          example: "2024-03-20T14:00:00Z"
 
     StrategyCreateRequest:
       type: object
+      description: 创建策略请求
       required:
         - name
         - type
       properties:
         name:
           type: string
+          description: 策略名称
+          example: "MA金叉策略"
         description:
           type: string
+          description: 策略描述
+          example: "5日均线上穿20日均线时买入"
         type:
           type: string
+          description: 策略类型
           enum: [TECHNICAL, FUNDAMENTAL, MIXED, CUSTOM]
+          example: "TECHNICAL"
         scriptContent:
           type: string
+          description: 自定义脚本内容（type=CUSTOM 时使用）
+          example: "..."
 
     StrategyDetailResponse:
       type: object
+      description: 策略详情响应
       properties:
         id:
           type: integer
+          description: 策略 ID
+          example: 1
         name:
           type: string
+          description: 策略名称
+          example: "MA金叉策略"
         description:
           type: string
+          description: 策略描述
+          example: "5日均线上穿20日均线时买入"
         type:
           type: string
+          description: 策略类型
+          enum: [TECHNICAL, FUNDAMENTAL, MIXED, CUSTOM]
+          example: "TECHNICAL"
         status:
           type: string
+          description: 策略状态
+          enum: [DRAFT, BACKTESTING, ENABLED, DISABLED]
+          example: "ENABLED"
         conditions:
           type: array
+          description: 策略条件列表
           items:
             $ref: '#/components/schemas/StrategyCondition'
         backtestResult:
           $ref: '#/components/schemas/BacktestSummary'
+          description: 最后回测结果
 
     StrategyUpdateRequest:
       type: object
+      description: 更新策略请求
       properties:
         name:
           type: string
+          description: 策略名称
         description:
           type: string
+          description: 策略描述
         status:
           type: string
+          description: 策略状态
+          enum: [DRAFT, BACKTESTING, ENABLED, DISABLED]
 
     StrategyCondition:
       type: object
+      description: 策略条件
       properties:
         id:
           type: integer
+          description: 条件 ID
+          example: 1
         conditionType:
           type: string
+          description: |
+            条件类型：
+            - INDICATOR：技术指标
+            - PRICE：价格条件
+            - VOLUME：成交量条件
+            - FUNDAMENTAL：基本面条件
+            - CUSTOM：自定义
+          enum: [INDICATOR, PRICE, VOLUME, FUNDAMENTAL, CUSTOM]
+          example: "INDICATOR"
         indicatorName:
           type: string
+          description: 指标名称，如 MA20、RSI14、MACD
+          example: "MA20"
         operator:
           type: string
+          description: |
+            运算符：
+            - GT：大于
+            - LT：小于
+            - GTE：大于等于
+            - LTE：小于等于
+            - EQ：等于
+            - CROSS_UP：上穿
+            - CROSS_DOWN：下穿
+          enum: [GT, LT, GTE, LTE, EQ, CROSS_UP, CROSS_DOWN]
+          example: "CROSS_UP"
         thresholdValue:
           type: number
+          description: 阈值（固定数值）
+          example: 50
+        thresholdIndicator:
+          type: string
+          description: 阈值指标（与另一指标比较时使用）
+        thresholdMultiplier:
+          type: number
+          description: 阈值乘数（如 MA5×1.5）
+          example: 1.5
         logicOperator:
           type: string
+          description: |
+            逻辑运算符：
+            - AND：并且
+            - OR：或者
+          enum: [AND, OR]
+          example: "AND"
 
     StrategyConditionCreateRequest:
       type: object
+      description: 添加策略条件请求
       required:
         - conditionType
         - operator
       properties:
         conditionType:
           type: string
+          description: 条件类型
+          enum: [INDICATOR, PRICE, VOLUME, FUNDAMENTAL, CUSTOM]
         indicatorName:
           type: string
+          description: 指标名称
+          example: "MA20"
         operator:
           type: string
+          description: 运算符
+          enum: [GT, LT, GTE, LTE, EQ, CROSS_UP, CROSS_DOWN]
         thresholdValue:
           type: number
+          description: 阈值
         thresholdIndicator:
           type: string
+          description: 阈值指标
         thresholdMultiplier:
           type: number
+          description: 阈值乘数
 
     StrategyTemplate:
       type: object
+      description: 策略模板
       properties:
         id:
           type: integer
+          description: 模板 ID
+          example: 1
         name:
           type: string
+          description: 模板名称
+          example: "MA金叉"
         description:
           type: string
+          description: 模板描述
+          example: "5日均线上穿20日均线时买入"
         type:
           type: string
+          description: 策略类型
+          enum: [TECHNICAL, FUNDAMENTAL, MIXED, CUSTOM]
+          example: "TECHNICAL"
         preview:
           type: string
+          description: 模板预览图 URL
+          example: "https://example.com/template-preview.png"
 
     # 模拟回测
     BacktestRequest:
       type: object
+      description: 开始回测请求
       required:
         - strategyId
         - startDate
@@ -1853,78 +2624,137 @@ components:
       properties:
         strategyId:
           type: integer
+          description: 策略 ID
+          example: 1
         startDate:
           type: string
+          description: 回测开始日期
           format: date
+          example: "2023-01-01"
         endDate:
           type: string
+          description: 回测结束日期
           format: date
+          example: "2024-01-01"
         initialCapital:
           type: number
+          description: 初始资金，单位：元
+          example: 100000.00
 
     BacktestResponse:
       type: object
+      description: 开始回测响应
       properties:
         backtestId:
           type: integer
+          description: 回测任务 ID
+          example: 1
         status:
           type: string
+          description: |
+            回测状态：
+            - PENDING：等待中
+            - RUNNING：运行中
+            - COMPLETED：已完成
+            - FAILED：失败
           enum: [PENDING, RUNNING, COMPLETED, FAILED]
+          example: "PENDING"
 
     BacktestResultResponse:
       type: object
+      description: 回测结果响应
       properties:
         backtestId:
           type: integer
+          description: 回测任务 ID
+          example: 1
         strategyId:
           type: integer
+          description: 策略 ID
+          example: 1
         status:
           type: string
+          description: 回测状态
+          enum: [PENDING, RUNNING, COMPLETED, FAILED]
+          example: "COMPLETED"
         result:
           $ref: '#/components/schemas/BacktestResult'
+          description: 回测结果
         comparison:
           $ref: '#/components/schemas/BacktestComparison'
+          description: 与基准对比
 
     BacktestResult:
       type: object
+      description: 回测结果详情
       properties:
         totalReturn:
           type: number
+          description: 总收益率
+          example: 0.158
         annualReturn:
           type: number
+          description: 年化收益率
+          example: 0.125
         maxDrawdown:
           type: number
+          description: 最大回撤
+          example: 0.082
         sharpeRatio:
           type: number
+          description: 夏普比率
+          example: 1.52
         winRate:
           type: number
+          description: 胜率
+          example: 0.65
         tradeCount:
           type: integer
+          description: 交易次数
+          example: 45
         averageHoldingDays:
           type: integer
+          description: 平均持仓天数
+          example: 12
 
     BacktestComparison:
       type: object
+      description: 回测与基准对比
       properties:
         strategy:
           type: number
+          description: 策略收益率
+          example: 0.158
         hs300:
           type: number
+          description: 沪深300收益率
+          example: 0.085
         similarFund:
           type: number
+          description: 同类基金收益率
+          example: 0.092
 
     BacktestSummary:
       type: object
+      description: 回测汇总（用于策略详情展示）
       properties:
         totalReturn:
           type: number
+          description: 总收益率
+          example: 0.158
         maxDrawdown:
           type: number
+          description: 最大回撤
+          example: 0.082
         sharpeRatio:
           type: number
+          description: 夏普比率
+          example: 1.52
         lastBacktestAt:
           type: string
+          description: 最后回测时间
           format: date-time
+          example: "2024-03-20T14:00:00Z"
 
     BacktestHistoryResponse:
       allOf:
@@ -1938,221 +2768,424 @@ components:
 
     BacktestHistoryItem:
       type: object
+      description: 回测历史项
       properties:
         id:
           type: integer
+          description: 回测记录 ID
+          example: 1
         strategyId:
           type: integer
+          description: 策略 ID
+          example: 1
         strategyName:
           type: string
+          description: 策略名称
+          example: "MA金叉策略"
         totalReturn:
           type: number
+          description: 总收益率
+          example: 0.158
         maxDrawdown:
           type: number
+          description: 最大回撤
+          example: 0.082
         createdAt:
           type: string
+          description: 回测时间
           format: date-time
+          example: "2024-03-20T14:00:00Z"
 
     # 消息推送
     PushConfig:
       type: object
+      description: 推送配置详情
       properties:
         dailyDiagnosisEnabled:
           type: boolean
+          description: 是否开启每日持仓诊断推送
+          example: true
         buildRecommendEnabled:
           type: boolean
+          description: 是否开启建仓推荐推送
+          example: true
         recommendCount:
           type: integer
+          description: 每日推荐数量
+          example: 5
         includeWatchlist:
           type: boolean
+          description: 是否包含自选股
+          example: true
         includeMarket:
           type: boolean
+          description: 是否包含市场概览
+          example: true
         includeSector:
           type: boolean
+          description: 是否包含热门板块
+          example: true
         alertConditions:
           type: object
+          description: 预警条件配置
+          example:
+            priceChangePercent: 5
+            volumeChangePercent: 200
 
     PushConfigResponse:
       type: object
+      description: 推送配置响应
       properties:
         pushEnabled:
           type: boolean
+          description: 是否开启消息总开关
+          example: true
         config:
           $ref: '#/components/schemas/PushConfig'
+          description: 推送配置详情
 
     PushConfigUpdateRequest:
       type: object
+      description: 更新推送配置请求
       properties:
         pushEnabled:
           type: boolean
+          description: 是否开启消息推送
         config:
           $ref: '#/components/schemas/PushConfig'
+          description: 推送配置详情
 
     PushHistoryResponse:
       allOf:
         - $ref: '#/components/schemas/PageResponse'
         - type: object
+          description: 推送历史响应
           properties:
             items:
               type: array
+              description: 推送历史列表
               items:
                 $ref: '#/components/schemas/PushHistoryItem'
 
     PushHistoryItem:
       type: object
+      description: 推送历史项
       properties:
         id:
           type: integer
+          description: 推送记录 ID
+          example: 1
         pushType:
           type: string
+          description: |
+            推送类型：
+            - DAILY_DIAGNOSIS：每日持仓诊断
+            - BUILD_RECOMMEND：建仓推荐
+            - ALERT：异动提醒
+            - STRATEGY_SIGNAL：策略信号
+            - SECTOR_REPORT：热门板块周报
+            - MONTHLY_REPORT：AI投资月报
+          enum: [DAILY_DIAGNOSIS, BUILD_RECOMMEND, ALERT, STRATEGY_SIGNAL, SECTOR_REPORT, MONTHLY_REPORT]
+          example: "DAILY_DIAGNOSIS"
         title:
           type: string
+          description: 推送标题
+          example: "您的每日投资诊断报告已生成"
         content:
           type: string
+          description: 推送内容（HTML 或 Markdown 格式）
+          example: "<h2>今日诊断</h2>..."
         symbols:
           type: array
+          description: 相关股票代码列表
           items:
             type: string
+          example: ["600519", "000001"]
         sentAt:
           type: string
+          description: 发送时间
           format: date-time
+          example: "2024-03-20T08:00:00Z"
         read:
           type: boolean
+          description: 是否已读
+          example: false
 
     # 分析详情
     TechnicalAnalysis:
       type: object
+      description: 技术面分析
       properties:
         score:
           type: integer
+          description: 技术面评分，0-100
+          example: 78
         trend:
           type: string
+          description: |
+            趋势方向：
+            - UPTREND：上升趋势
+            - DOWNTREND：下降趋势
+            - SIDEWAY：横盘震荡
           enum: [UPTREND, DOWNTREND, SIDEWAY]
+          example: "UPTREND"
         indicators:
           type: object
+          description: 各项技术指标详情
+          example:
+            ma20: 1850.00
+            ma60: 1780.00
+            rsi14: 65
+            macd: 0.5
 
     FundamentalAnalysis:
       type: object
+      description: 基本面分析
       properties:
         score:
           type: integer
+          description: 基本面评分，0-100
+          example: 82
         pe:
           type: number
+          description: 市盈率 PE
+          example: 28.5
         pePercentile:
           type: number
+          description: PE 百分位，0-1
+          example: 0.65
         growthRate:
           type: number
+          description: 营收增长率
+          example: 0.15
         dividendYield:
           type: number
+          description: 股息率
+          example: 0.02
 
     NewsAnalysis:
       type: object
+      description: 消息面分析
       properties:
         score:
           type: integer
+          description: 消息面评分，0-100
+          example: 70
         sentiment:
           type: string
+          description: |
+            舆情倾向：
+            - POSITIVE：正面
+            - NEUTRAL：中性
+            - NEGATIVE：负面
           enum: [POSITIVE, NEUTRAL, NEGATIVE]
+          example: "POSITIVE"
         recentNews:
           type: array
+          description: 近期重要新闻列表
           items:
             type: object
+            description: 新闻项
+            properties:
+              title:
+                type: string
+                description: 新闻标题
+              url:
+                type: string
+                description: 新闻链接
+              publishTime:
+                type: string
+                description: 发布时间
+              sentiment:
+                type: string
+                description: 新闻情感
 
     CapitalAnalysis:
       type: object
+      description: 资金面分析
       properties:
         score:
           type: integer
+          description: 资金面评分，0-100
+          example: 75
         mainFlow:
           type: number
+          description: 主力净流入，单位：万元
+          example: 12500.00
         northboundFlow:
           type: number
+          description: 北向资金净流入，单位：万元
+          example: 3800.00
         foreignFlow:
           type: number
+          description: 外资净流入，单位：万元
+          example: 1200.00
 
     TradingSuggestion:
       type: object
+      description: 交易建议
       properties:
         action:
           type: string
+          description: |
+            操作建议：
+            - BUY：买入
+            - SELL：卖出
+            - HOLD：持有
+            - WAIT：观望
+          enum: [BUY, SELL, HOLD, WAIT]
+          example: "BUY"
         entryPrice:
           type: number
+          description: 建议入场价
+          example: 1820.00
         stopLoss:
           type: number
+          description: 止损价
+          example: 1750.00
         takeProfit:
           type: number
+          description: 止盈价
+          example: 1950.00
         suggestedPosition:
           type: number
+          description: 建议仓位比例，0-1
+          example: 0.3
         reason:
           type: string
+          description: 建议理由
+          example: "技术面金叉，基本面良好，资金流入"
 
     PositionInput:
       type: object
+      description: 持仓输入（用于持仓分析）
       properties:
         symbol:
           type: string
+          description: 股票代码
+          example: "600519"
         shares:
           type: number
+          description: 持仓股数
+          example: 100
         avgCost:
           type: number
+          description: 平均成本价
+          example: 1680.00
 
     HoldAnalysisItem:
       type: object
+      description: 持仓分析项
       properties:
         symbol:
           type: string
+          description: 股票代码
+          example: "600519"
         name:
           type: string
+          description: 股票名称
+          example: "贵州茅台"
         shares:
           type: number
+          description: 持仓股数
+          example: 100
         avgCost:
           type: number
+          description: 平均成本价
+          example: 1680.00
         currentPrice:
           type: number
+          description: 当前价格
+          example: 1850.00
         profitRate:
           type: number
+          description: 收益率
+          example: 0.1012
         positionRatio:
           type: number
+          description: 仓位占比，0-1
+          example: 0.35
         recommendation:
           type: string
+          description: AI 建议
+          enum: [BUILD_POSITION, HOLD, WAIT, AVOID]
+          example: "HOLD"
 
     PortfolioPosition:
       type: object
+      description: 组合持仓（用于组合分析）
       properties:
         symbol:
           type: string
+          description: 股票代码
+          example: "600519"
         name:
           type: string
+          description: 股票名称
+          example: "贵州茅台"
         shares:
           type: number
+          description: 持仓股数
+          example: 100
         avgCost:
           type: number
+          description: 平均成本价
+          example: 1680.00
         currentPrice:
           type: number
+          description: 当前价格
+          example: 1850.00
         marketValue:
           type: number
+          description: 市值
+          example: 185000.00
         profitRate:
           type: number
+          description: 收益率
+          example: 0.1012
         positionRatio:
           type: number
+          description: 仓位占比，0-1
+          example: 0.35
 
     IndustryDistribution:
       type: object
+      description: 行业分布
       properties:
         industry:
           type: string
+          description: 行业名称
+          example: "白酒"
         proportion:
           type: number
+          description: 占比，0-1
+          example: 0.35
         change:
           type: number
+          description: 相比上期变化
+          example: 0.02
 
     OptimizeSuggestion:
       type: object
+      description: 优化建议
       properties:
         type:
           type: string
+          description: |
+            操作类型：
+            - ADD：加仓
+            - REDUCE：减仓
+            - REPLACE：替换
           enum: [ADD, REDUCE, REPLACE]
+          example: "REDUCE"
         symbol:
           type: string
+          description: 股票代码
+          example: "600519"
+        targetSymbol:
+          type: string
+          description: 替换后的股票代码（type=REPLACE 时使用）
         reason:
           type: string
+          description: 建议理由
+          example: "金融板块占比偏高，建议减仓"
