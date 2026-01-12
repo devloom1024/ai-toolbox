@@ -126,5 +126,50 @@
         "networkError": "网络错误，请重试"
       }
     }
+  },
+  "investment": {
+    "account": {
+      "title": "账号管理",
+      "description": "管理您的投资账号",
+      "addAccount": "添加账号",
+      "editAccount": "编辑账号",
+      "deleteAccount": "删除账号",
+      "confirmDelete": "确认删除",
+      "deleteWarning": "删除账号前需要先删除该账号下的所有持仓。确定要删除吗？",
+      "cancel": "取消",
+      "confirm": "确认",
+      "save": "保存",
+      "saving": "保存中...",
+      "fields": {
+        "accountType": "账号类型",
+        "accountName": "账号名称",
+        "accountIcon": "账号图标",
+        "isActive": "是否启用",
+        "isHidden": "是否隐藏",
+        "sortOrder": "排序",
+        "positionCount": "持仓数量",
+        "totalAssets": "总资产"
+      },
+      "types": {
+        "BROKER": "券商",
+        "FUND_PLATFORM": "基金平台",
+        "BANK": "银行",
+        "ALIPAY": "支付宝",
+        "OTHER": "其他"
+      },
+      "placeholders": {
+        "accountName": "如：东方财富A股",
+        "accountIcon": "图标 URL（可选）"
+      },
+      "errors": {
+        "accountTypeRequired": "请选择账号类型",
+        "accountNameRequired": "请输入账号名称"
+      },
+      "messages": {
+        "createSuccess": "账号创建成功",
+        "updateSuccess": "账号更新成功",
+        "deleteSuccess": "账号删除成功"
+      }
+    }
   }
 }

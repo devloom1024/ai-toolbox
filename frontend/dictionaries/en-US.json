@@ -126,5 +126,50 @@
         "networkError": "Network error, please try again"
       }
     }
+  },
+  "investment": {
+    "account": {
+      "title": "Account Management",
+      "description": "Manage your investment accounts",
+      "addAccount": "Add Account",
+      "editAccount": "Edit Account",
+      "deleteAccount": "Delete Account",
+      "confirmDelete": "Confirm Delete",
+      "deleteWarning": "You need to delete all positions under this account before deleting it. Are you sure?",
+      "cancel": "Cancel",
+      "confirm": "Confirm",
+      "save": "Save",
+      "saving": "Saving...",
+      "fields": {
+        "accountType": "Account Type",
+        "accountName": "Account Name",
+        "accountIcon": "Account Icon",
+        "isActive": "Active",
+        "isHidden": "Hidden",
+        "sortOrder": "Sort Order",
+        "positionCount": "Positions",
+        "totalAssets": "Total Assets"
+      },
+      "types": {
+        "BROKER": "Broker",
+        "FUND_PLATFORM": "Fund Platform",
+        "BANK": "Bank",
+        "ALIPAY": "Alipay",
+        "OTHER": "Other"
+      },
+      "placeholders": {
+        "accountName": "e.g., My Broker Account",
+        "accountIcon": "Icon URL (optional)"
+      },
+      "errors": {
+        "accountTypeRequired": "Please select account type",
+        "accountNameRequired": "Please enter account name"
+      },
+      "messages": {
+        "createSuccess": "Account created successfully",
+        "updateSuccess": "Account updated successfully",
+        "deleteSuccess": "Account deleted successfully"
+      }
+    }
   }
 }

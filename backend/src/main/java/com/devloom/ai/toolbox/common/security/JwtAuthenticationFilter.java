@@ -30,25 +30,30 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
         String header = request.getHeader(HttpHeaders.AUTHORIZATION);
-        if (StringUtils.hasText(header) && header.startsWith("Bearer ")) {
-            String token = header.substring(7);
-            JwtTokenProvider.JwtPayload payload = jwtTokenProvider.parse(token);
-            Optional<UserEntity> userOptional = userRepository.findById(payload.userId());
-            if (userOptional.isEmpty()) {
-                throw new BizException(BizErrorCode.UNAUTHORIZED);
+        try {
+            if (StringUtils.hasText(header) && header.startsWith("Bearer ")) {
+                String token = header.substring(7);
+                JwtTokenProvider.JwtPayload payload = jwtTokenProvider.parse(token);
+                Optional<UserEntity> userOptional = userRepository.findById(payload.userId());
+                if (userOptional.isEmpty()) {
+                    throw new BizException(BizErrorCode.UNAUTHORIZED);
+                }
+                UserEntity user = userOptional.get();
+                if (user.getStatus() == UserStatus.DELETED) {
+                    throw new BizException(BizErrorCode.UNAUTHORIZED);
+                }
+                if (user.getStatus() == UserStatus.LOCKED) {
+                    throw new BizException(BizErrorCode.ACCOUNT_LOCKED);
+                }
+                CurrentUser principal = new CurrentUser(user.getId(), user.getNickname(), user.getStatus());
+                UsernamePasswordAuthenticationToken authentication =
+                        new UsernamePasswordAuthenticationToken(principal, token, principal.getAuthorities());
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+                CurrentUserHolder.setCurrentUser(principal);
             }
-            UserEntity user = userOptional.get();
-            if (user.getStatus() == UserStatus.DELETED) {
-                throw new BizException(BizErrorCode.UNAUTHORIZED);
-            }
-            if (user.getStatus() == UserStatus.LOCKED) {
-                throw new BizException(BizErrorCode.ACCOUNT_LOCKED);
-            }
-            CurrentUser principal = new CurrentUser(user.getId(), user.getNickname(), user.getStatus());
-            UsernamePasswordAuthenticationToken authentication =
-                    new UsernamePasswordAuthenticationToken(principal, token, principal.getAuthorities());
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+            filterChain.doFilter(request, response);
+        } finally {
+            CurrentUserHolder.clear();
         }
-        filterChain.doFilter(request, response);
     }
 }
