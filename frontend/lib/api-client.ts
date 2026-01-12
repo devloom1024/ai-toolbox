@@ -97,9 +97,13 @@ apiClient.interceptors.request.use(
       if (!config.headers['Content-Type']) {
         config.headers['Content-Type'] = 'application/json'
       }
-      const token = localStorage.getItem('access_token')
-      if (token) {
-        config.headers['Authorization'] = `Bearer ${token}`
+      // 刷新 token 接口不应该携带 Authorization header，避免过期 token 导致 401
+      const isRefreshEndpoint = config.url?.includes('/api/v1/auth/token/refresh')
+      if (!isRefreshEndpoint) {
+        const token = localStorage.getItem('access_token')
+        if (token) {
+          config.headers['Authorization'] = `Bearer ${token}`
+        }
       }
     }
     return config
