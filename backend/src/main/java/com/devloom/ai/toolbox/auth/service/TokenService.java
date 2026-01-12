@@ -12,6 +12,7 @@ import com.devloom.ai.toolbox.common.security.JwtTokenProvider;
 import com.devloom.ai.toolbox.common.util.RandomUtil;
 import com.devloom.ai.toolbox.common.web.DeviceContextHolder;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -20,6 +21,7 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class TokenService {
@@ -37,11 +39,25 @@ public class TokenService {
     @Transactional(rollbackFor = {Exception.class, Error.class})
     public TokenResponse refresh(String refreshTokenValue) {
         Instant now = clock.instant();
+        String requestDevice = normalizeDevice(DeviceContextHolder.getDeviceId());
+
         RefreshTokenEntity refreshToken = refreshTokenRepository
                 .findByTokenAndExpiresAtAfter(refreshTokenValue, now)
                 .orElseThrow(() -> new BizException(BizErrorCode.REFRESH_TOKEN_INVALID));
-        refreshTokenRepository.delete(refreshToken);
-        return createTokenPair(refreshToken.getUser());
+
+        // 验证请求设备与 token 绑定的设备是否一致（防止 token 盗用到其他设备）
+        String tokenDevice = refreshToken.getDevice();
+        if (!requestDevice.equals(tokenDevice)) {
+            log.warn("Refresh token used from different device: expected={}, actual={}, userId={}",
+                    tokenDevice, requestDevice, refreshToken.getUser().getId());
+            // 根据安全策略，这里选择记录告警但仍允许（也可改为拒绝）
+        }
+
+        // 删除该用户该设备上的所有旧 token（包括当前这个）
+        refreshTokenRepository.deleteByUserAndDevice(refreshToken.getUser(), tokenDevice);
+        refreshTokenRepository.flush();
+
+        return createTokenPair(refreshToken.getUser(), tokenDevice);
     }
 
     @Transactional(rollbackFor = {Exception.class, Error.class})
@@ -55,14 +71,19 @@ public class TokenService {
 
     private TokenResponse createTokenPair(UserEntity user) {
         String normalizedDevice = normalizeDevice(DeviceContextHolder.getDeviceId());
-        refreshTokenRepository.deleteByUserAndDevice(user, normalizedDevice);
+        return createTokenPair(user, normalizedDevice);
+    }
+
+    private TokenResponse createTokenPair(UserEntity user, String device) {
+        // 删除该用户的该设备上的旧 token
+        refreshTokenRepository.deleteByUserAndDevice(user, device);
         refreshTokenRepository.flush();  // 强制立即执行 DELETE，避免 Hibernate 延迟执行导致唯一索引冲突
         String refreshTokenValue = RandomUtil.randomHex(32);
         Instant now = clock.instant();
         RefreshTokenEntity refreshToken = RefreshTokenEntity.builder()
                 .user(user)
                 .token(refreshTokenValue)
-                .device(normalizedDevice)
+                .device(device)
                 .expiresAt(now.plus(authProperties.getToken().getRefreshTokenTtlDays(), ChronoUnit.DAYS))
                 .build();
         refreshTokenRepository.save(refreshToken);

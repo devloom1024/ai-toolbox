@@ -128,6 +128,16 @@ apiClient.interceptors.response.use(
       const status = error.response.status
 
       if (status === 401 && !originalRequest._retry) {
+        // 如果是刷新 token 的接口报 401，说明 refresh token 也失效了，直接跳转登录
+        const isRefreshEndpoint = originalRequest.url?.includes('/api/v1/auth/token/refresh')
+        if (isRefreshEndpoint) {
+          clearAuthData()
+          if (typeof window !== 'undefined' && !window.location.pathname.includes('/login')) {
+            window.location.href = `/${getLanguage()}/login?reason=session_expired`
+          }
+          return Promise.reject(error)
+        }
+
         originalRequest._retry = true
 
         if (!isRefreshing) {
@@ -151,7 +161,7 @@ apiClient.interceptors.response.use(
             clearAuthData()
 
             if (typeof window !== 'undefined' && !window.location.pathname.includes('/login')) {
-              window.location.href = '/login?reason=session_expired'
+              window.location.href = `/${getLanguage()}/login?reason=session_expired`
             }
 
             return Promise.reject(refreshError)

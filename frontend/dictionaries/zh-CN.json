@@ -281,6 +281,58 @@
         "deleteSuccess": "账号删除成功",
         "deleteError": "删除账号失败"
       }
+    },
+    "watchlist": {
+      "title": "自选股",
+      "description": "管理您的自选投资标的",
+      "addStock": "添加自选",
+      "searchStock": "搜索",
+      "searchPlaceholder": "搜索股票代码或名称...",
+      "group": "分组",
+      "allGroups": "全部分组",
+      "allMarkets": "全部市场",
+      "market": "市场",
+      "columns": {
+        "symbol": "代码",
+        "name": "名称",
+        "price": "现价",
+        "change": "涨跌幅",
+        "recommendation": "建议",
+        "confidence": "置信度",
+        "addedAt": "添加时间",
+        "actions": "操作"
+      },
+      "recommendations": {
+        "BUILD_POSITION": "建仓",
+        "HOLD": "持有",
+        "WAIT": "观望",
+        "AVOID": "回避"
+      },
+      "markets": {
+        "A_SHARE": "A股",
+        "HK": "港股",
+        "US": "美股",
+        "ETF": "ETF",
+        "FUND": "基金"
+      },
+      "dialog": {
+        "title": "添加自选股",
+        "description": "搜索并添加股票到自选列表",
+        "selectGroup": "选择分组",
+        "defaultGroup": "默认分组",
+        "createGroup": "新建分组",
+        "selectMarket": "选择市场",
+        "searchResult": "搜索结果"
+      },
+      "messages": {
+        "addSuccess": "添加成功",
+        "removeSuccess": "已移除",
+        "createGroupSuccess": "分组创建成功"
+      },
+      "empty": {
+        "title": "暂无自选股",
+        "description": "点击上方按钮添加您的第一个自选股"
+      }
     }
   }
 }

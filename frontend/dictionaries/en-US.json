@@ -281,6 +281,58 @@
         "deleteSuccess": "Account deleted successfully",
         "deleteError": "Failed to delete account"
       }
+    },
+    "watchlist": {
+      "title": "Watchlist",
+      "description": "Manage your favorite investment items",
+      "addStock": "Add Stock",
+      "searchStock": "Search",
+      "searchPlaceholder": "Search by symbol or name...",
+      "group": "Group",
+      "allGroups": "All Groups",
+      "allMarkets": "All Markets",
+      "market": "Market",
+      "columns": {
+        "symbol": "Symbol",
+        "name": "Name",
+        "price": "Price",
+        "change": "Change",
+        "recommendation": "Rec.",
+        "confidence": "Conf.",
+        "addedAt": "Added At",
+        "actions": "Actions"
+      },
+      "recommendations": {
+        "BUILD_POSITION": "Buy",
+        "HOLD": "Hold",
+        "WAIT": "Wait",
+        "AVOID": "Avoid"
+      },
+      "markets": {
+        "A_SHARE": "A-Share",
+        "HK": "HK",
+        "US": "US",
+        "ETF": "ETF",
+        "FUND": "Fund"
+      },
+      "dialog": {
+        "title": "Add to Watchlist",
+        "description": "Search and add stocks to your watchlist",
+        "selectGroup": "Select Group",
+        "defaultGroup": "Default Group",
+        "createGroup": "New Group",
+        "selectMarket": "Select Market",
+        "searchResult": "Search Results"
+      },
+      "messages": {
+        "addSuccess": "Added successfully",
+        "removeSuccess": "Removed successfully",
+        "createGroupSuccess": "Group created successfully"
+      },
+      "empty": {
+        "title": "No Watchlist Items",
+        "description": "Click the button above to add your first item"
+      }
     }
   }
 }

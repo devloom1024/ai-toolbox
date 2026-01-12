@@ -11,7 +11,7 @@ import lombok.Getter;
 public class TokenResponse {
     /** 短期访问凭证 Access Token。 */
     private final String accessToken;
-    /** 长期刷新凭证 Refresh Token。 */
+    /** 刷新凭证 Refresh Token（每次刷新会轮换更新）。 */
     private final String refreshToken;
     /** Access Token 过期秒数。 */
     private final long expiresIn;

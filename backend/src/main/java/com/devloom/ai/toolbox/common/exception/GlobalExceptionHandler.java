@@ -72,11 +72,11 @@ public class GlobalExceptionHandler {
 
     private HttpStatus mapStatus(BizErrorCode code) {
         return switch (code) {
-            case UNAUTHORIZED, REFRESH_TOKEN_INVALID -> HttpStatus.UNAUTHORIZED;
+            case UNAUTHORIZED, REFRESH_TOKEN_INVALID, PASSWORD_MISMATCH -> HttpStatus.UNAUTHORIZED;
             case ACCESS_DENIED -> HttpStatus.FORBIDDEN;
             case RATE_LIMIT -> HttpStatus.TOO_MANY_REQUESTS;
             case RESOURCE_NOT_FOUND -> HttpStatus.NOT_FOUND;
-            case DUPLICATE_REQUEST, EMAIL_EXISTS, OTP_INVALID, OTP_EXPIRED, INVALID_PARAMETER, PASSWORD_MISMATCH ->
+            case DUPLICATE_REQUEST, EMAIL_EXISTS, OTP_INVALID, OTP_EXPIRED, INVALID_PARAMETER ->
                     HttpStatus.BAD_REQUEST;
             case FEATURE_NOT_IMPLEMENTED, LINUXDO_NOT_CONFIGURED -> HttpStatus.NOT_IMPLEMENTED;
             default -> HttpStatus.BAD_REQUEST;

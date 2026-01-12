@@ -97,7 +97,7 @@ export const navigationConfig = {
             url: '#',
             items: [
                 { key: 'account', url: '/investment/account' },
-                { key: 'watchlist', url: '#' },
+                { key: 'watchlist', url: '/investment/watchlist' },
                 { key: 'holdings', url: '#' },
             ],
         },

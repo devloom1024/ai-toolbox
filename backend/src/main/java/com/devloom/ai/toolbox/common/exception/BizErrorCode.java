@@ -23,6 +23,8 @@ public enum BizErrorCode {
     LINUXDO_NOT_CONFIGURED(2005, "auth.linuxdo.not-configured", "LinuxDo integration is not configured"),
     LINUXDO_ALREADY_BIND(2006, "auth.linuxdo.already-bind", "LinuxDo account is already bound to another user"),
     FEATURE_NOT_IMPLEMENTED(9000, "error.not-implemented", "Feature not implemented"),
+    WATCHLIST_DUPLICATE_SYMBOL(9001, "watchlist.duplicate-symbol", "Stock already in watchlist"),
+    WATCHLIST_DUPLICATE_GROUP_NAME(9002, "watchlist.duplicate-group-name", "Group name already exists"),
     INTERNAL_ERROR(9999, "error.internal", "Internal server error");
 
     private final int code;

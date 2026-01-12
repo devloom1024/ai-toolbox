@@ -52,6 +52,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 CurrentUserHolder.setCurrentUser(principal);
             }
             filterChain.doFilter(request, response);
+        } catch (BizException ex) {
+            // 对于 permitAll 端点，清空 SecurityContext 继续处理（让 Controller 处理业务逻辑）
+            // 对于需要认证的端点，Spring Security 会返回 401
+            SecurityContextHolder.clearContext();
+            filterChain.doFilter(request, response);
         } finally {
             CurrentUserHolder.clear();
         }

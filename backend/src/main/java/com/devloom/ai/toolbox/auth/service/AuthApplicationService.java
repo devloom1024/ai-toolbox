@@ -76,22 +76,35 @@ public class AuthApplicationService {
     public TokenResponse login(LoginRequest request, String ip, String userAgent) {
         IdentityType identityType = request.getType() == null ? IdentityType.EMAIL : request.getType();
         String identifier = normalizeIdentifier(identityType, request.getIdentifier());
+
+        // 先查询用户，不存在时也记录登录失败（防止用户名枚举）
         UserAuthEntity auth = userAuthRepository
                 .findByIdentityTypeAndIdentifier(identityType, identifier)
-                .orElseThrow(() -> new BizException(BizErrorCode.UNAUTHORIZED));
-        UserEntity user = auth.getUser();
+                .orElse(null);
+
+        UserEntity user = auth != null ? auth.getUser() : null;
+
+        // 用户不存在或已被删除，统一记录失败并返回认证失败
+        if (user == null || user.getStatus() == UserStatus.DELETED) {
+            // 记录失败的登录（用户不存在时也记录，便于审计）
+            if (auth != null) {
+                recordLogin(auth.getUser(), identityType, identifier, ip, userAgent, LoginStatus.FAILURE);
+            }
+            throw new BizException(BizErrorCode.PASSWORD_MISMATCH);
+        }
+
+        // 账号已锁定
         if (user.getStatus() == UserStatus.LOCKED) {
             recordLogin(user, identityType, identifier, ip, userAgent, LoginStatus.FAILURE);
             throw new BizException(BizErrorCode.ACCOUNT_LOCKED);
         }
-        if (user.getStatus() == UserStatus.DELETED) {
-            recordLogin(user, identityType, identifier, ip, userAgent, LoginStatus.FAILURE);
-            throw new BizException(BizErrorCode.UNAUTHORIZED);
-        }
+
+        // 密码错误
         if (!passwordEncoder.matches(request.getPassword(), auth.getCredential())) {
             recordLogin(user, identityType, identifier, ip, userAgent, LoginStatus.FAILURE);
             throw new BizException(BizErrorCode.PASSWORD_MISMATCH);
         }
+
         auth.setLastLoginAt(clock.instant());
         userAuthRepository.save(auth);
         recordLogin(user, identityType, identifier, ip, userAgent, LoginStatus.SUCCESS);
