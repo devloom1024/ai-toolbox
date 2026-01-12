@@ -20,6 +20,50 @@
       }
     }
   },
+  "nav": {
+    "labels": {
+      "platform": "平台",
+      "projects": "项目"
+    },
+    "playground": {
+      "title": "工作台",
+      "history": "历史记录",
+      "starred": "已收藏",
+      "settings": "设置"
+    },
+    "models": {
+      "title": "模型",
+      "genesis": "Genesis",
+      "explorer": "Explorer",
+      "quantum": "Quantum"
+    },
+    "documentation": {
+      "title": "文档",
+      "introduction": "介绍",
+      "getStarted": "快速开始",
+      "tutorials": "教程",
+      "changelog": "更新日志"
+    },
+    "investment": {
+      "title": "投资管理",
+      "account": "账号管理",
+      "watchlist": "自选股",
+      "holdings": "持仓管理"
+    },
+    "settings": {
+      "title": "设置",
+      "general": "通用",
+      "team": "团队",
+      "billing": "账单",
+      "limits": "限制"
+    },
+    "projects": {
+      "designEngineering": "设计工程",
+      "salesMarketing": "销售与营销",
+      "travel": "旅行",
+      "more": "更多"
+    }
+  },
   "dashboard": {
     "hero": {
       "title": "欢迎回来，shadcn",

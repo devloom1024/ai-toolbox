@@ -20,6 +20,50 @@
       }
     }
   },
+  "nav": {
+    "labels": {
+      "platform": "Platform",
+      "projects": "Projects"
+    },
+    "playground": {
+      "title": "Playground",
+      "history": "History",
+      "starred": "Starred",
+      "settings": "Settings"
+    },
+    "models": {
+      "title": "Models",
+      "genesis": "Genesis",
+      "explorer": "Explorer",
+      "quantum": "Quantum"
+    },
+    "documentation": {
+      "title": "Documentation",
+      "introduction": "Introduction",
+      "getStarted": "Get Started",
+      "tutorials": "Tutorials",
+      "changelog": "Changelog"
+    },
+    "investment": {
+      "title": "Investment",
+      "account": "Account Management",
+      "watchlist": "Watchlist",
+      "holdings": "Holdings"
+    },
+    "settings": {
+      "title": "Settings",
+      "general": "General",
+      "team": "Team",
+      "billing": "Billing",
+      "limits": "Limits"
+    },
+    "projects": {
+      "designEngineering": "Design Engineering",
+      "salesMarketing": "Sales & Marketing",
+      "travel": "Travel",
+      "more": "More"
+    }
+  },
   "dashboard": {
     "hero": {
       "title": "Welcome back, shadcn",

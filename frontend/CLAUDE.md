@@ -358,6 +358,22 @@ localStorage.setItem('access_token', token)
 2. 在组件中使用 `useTranslation()` 获取字典
 3. 访问翻译: `dict.auth.login.title`
 
+### 添加 shadcn/ui 组件
+
+**安装组件**:
+```bash
+pnpm dlx shadcn@latest add dialog
+pnpm dlx shadcn@latest add button
+pnpm dlx shadcn@latest add input
+# 支持的组件: alert, avatar, badge, card, dialog, dropdown-menu, form, input, select, sheet, skeleton, table, tabs, toast 等
+```
+
+**组件列表**: 参考 https://ui.shadcn.com/components
+
+**完整文档**: 包含所有组件的详细使用说明，参考 `docs/llm/shadcn-llms.txt`（从 https://ui.shadcn.com/llms.txt 获取）
+
+**实际使用**: 参考 `components/ui/` 下的组件文件
+
 ### 添加认证保护
 
 **参考文件**: `components/auth-guard.tsx`, `app/[locale]/(app)/layout.tsx`

@@ -32,6 +32,7 @@ import { Badge } from '@/components/ui/badge'
 import { Plus, Pencil, Trash2 } from 'lucide-react'
 import { accountApi, AccountResponse, AccountCreateRequest, AccountUpdateRequest } from '@/lib/api/account'
 import { AccountFormDialog } from '@/components/account-form-dialog'
+import { PageContainer } from '@/components/page-container'
 import { toast } from 'sonner'
 
 export default function AccountManagementPage() {
@@ -122,7 +123,7 @@ export default function AccountManagementPage() {
     }
 
     return (
-        <div className="container mx-auto py-6">
+        <PageContainer>
             <Card>
                 <CardHeader>
                     <div className="flex items-center justify-between">
@@ -216,6 +217,6 @@ export default function AccountManagementPage() {
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
-        </div>
+        </PageContainer>
     )
 }
