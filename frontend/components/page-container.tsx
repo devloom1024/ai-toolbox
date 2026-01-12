@@ -76,6 +76,11 @@ export function PageContainer({ breadcrumbs: customBreadcrumbs, pageTitle, child
     const breadcrumbs = customBreadcrumbs !== undefined ? customBreadcrumbs : autoBreadcrumbs
     const title = pageTitle || autoPageTitle
 
+    console.log('📄 [PageContainer] 自定义面包屑:', customBreadcrumbs)
+    console.log('📄 [PageContainer] 自动面包屑:', autoBreadcrumbs)
+    console.log('📄 [PageContainer] 最终使用的面包屑:', breadcrumbs)
+    console.log('📄 [PageContainer] 页面标题:', title)
+
     // 设置页面标题
     useEffect(() => {
         if (title) {

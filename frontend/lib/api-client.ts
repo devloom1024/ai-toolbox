@@ -212,23 +212,53 @@ export function getApiUrl(endpoint: string): string {
   return `${API_BASE_URL}${normalizedEndpoint}`
 }
 
+// 函数重载：支持两种调用方式
 export async function request<T>(
-  endpoint: string,
-  options: RequestInit & { errorHandler?: ErrorHandlerConfig } = {}
+  endpointOrConfig: string | {
+    url: string
+    method?: string
+    data?: any
+    params?: any
+    errorHandler?: ErrorHandlerConfig
+  },
+  options?: RequestInit & { errorHandler?: ErrorHandlerConfig }
 ): Promise<ApiResponse<T>> {
-  const url = getApiUrl(endpoint)
-  const method = options.method || 'POST'
-  const { errorHandler, ...requestOptions } = options
+  let url: string
+  let method: string
+  let errorHandler: ErrorHandlerConfig | undefined
+  let requestData: any
+  let requestParams: any
 
-  const config = { errorHandler } as any
+  // 判断是对象参数还是字符串参数
+  if (typeof endpointOrConfig === 'string') {
+    // 传统方式: request('/api/path', { method: 'GET', body: ... })
+    url = getApiUrl(endpointOrConfig)
+    method = options?.method || 'POST'
+    errorHandler = options?.errorHandler
+    requestData = (options as any)?.body
+  } else {
+    // 新方式: request({ url: '/api/path', method: 'GET', data: ... })
+    url = getApiUrl(endpointOrConfig.url)
+    method = endpointOrConfig.method || 'GET'
+    errorHandler = endpointOrConfig.errorHandler
+    requestData = endpointOrConfig.data
+    requestParams = endpointOrConfig.params
+  }
+
+  const config: any = { errorHandler }
+
+  // 如果有 params，添加到 config 中（用于 GET 请求的查询参数）
+  if (requestParams) {
+    config.params = requestParams
+  }
 
   let response
   if (method.toUpperCase() === 'GET') {
     response = await apiClient.get<ApiResponse<T>>(url, config)
   } else if (method.toUpperCase() === 'POST') {
-    response = await apiClient.post<ApiResponse<T>>(url, requestOptions.body, config)
+    response = await apiClient.post<ApiResponse<T>>(url, requestData, config)
   } else if (method.toUpperCase() === 'PUT') {
-    response = await apiClient.put<ApiResponse<T>>(url, requestOptions.body, config)
+    response = await apiClient.put<ApiResponse<T>>(url, requestData, config)
   } else if (method.toUpperCase() === 'DELETE') {
     response = await apiClient.delete<ApiResponse<T>>(url, config)
   } else {

@@ -15,9 +15,9 @@ export interface BreadcrumbItem {
  */
 const routeMap: Record<string, { key: string; parent?: string }> = {
     '/': { key: 'dashboard' },
-    '/investment/account': { key: 'investment.account', parent: 'investment' },
-    '/investment/watchlist': { key: 'investment.watchlist', parent: 'investment' },
-    '/investment/holdings': { key: 'investment.holdings', parent: 'investment' },
+    '/investment/account': { key: 'investment.account', parent: 'nav.investment' },
+    '/investment/watchlist': { key: 'investment.watchlist', parent: 'nav.investment' },
+    '/investment/holdings': { key: 'investment.holdings', parent: 'nav.investment' },
 }
 
 /**
@@ -41,13 +41,24 @@ export function useBreadcrumbs(): BreadcrumbItem[] {
     const dict = useTranslation()
 
     // 移除语言前缀，获取实际路径
-    const path = pathname.replace(`/${locale}`, '') || '/'
+    let path = pathname.replace(`/${locale}`, '') || '/'
+    // 移除末尾的斜杠（除了根路径）
+    if (path !== '/' && path.endsWith('/')) {
+        path = path.slice(0, -1)
+    }
+
+    console.log('🍞 [Breadcrumbs] ===== 开始生成面包屑 =====')
+    console.log('🍞 [Breadcrumbs] 原始路径:', pathname)
+    console.log('🍞 [Breadcrumbs] 语言:', locale)
+    console.log('🍞 [Breadcrumbs] 处理后路径:', path)
 
     // 查找路由配置
     const routeConfig = routeMap[path]
+    console.log('🍞 [Breadcrumbs] 路由配置:', routeConfig)
+    console.log('🍞 [Breadcrumbs] 所有路由映射:', routeMap)
 
     if (!routeConfig) {
-        // 如果没有配置，返回空数组
+        console.log('🍞 [Breadcrumbs] ❌ 未找到路由配置，返回空数组')
         return []
     }
 
@@ -55,38 +66,60 @@ export function useBreadcrumbs(): BreadcrumbItem[] {
 
     // 如果有父级，添加父级面包屑
     if (routeConfig.parent) {
+        console.log('🍞 [Breadcrumbs] 父级配置:', routeConfig.parent)
         const parentKeys = routeConfig.parent.split('.')
-        let parentLabel = dict as any
+        console.log('🍞 [Breadcrumbs] 父级键路径:', parentKeys)
 
+        let parentLabel = dict as any
         for (const key of parentKeys) {
+            console.log(`🍞 [Breadcrumbs] 查找父级键 "${key}":`, parentLabel?.[key])
             parentLabel = parentLabel?.[key]
         }
+
+        console.log('🍞 [Breadcrumbs] 父级标签对象:', parentLabel)
+        console.log('🍞 [Breadcrumbs] 父级标题:', parentLabel?.title)
 
         if (parentLabel?.title) {
             breadcrumbs.push({
                 label: parentLabel.title,
                 href: '#',
             })
+            console.log('🍞 [Breadcrumbs] ✅ 添加父级面包屑:', parentLabel.title)
+        } else {
+            console.log('🍞 [Breadcrumbs] ⚠️ 父级标题不存在')
         }
     }
 
     // 添加当前页面面包屑
+    console.log('🍞 [Breadcrumbs] 当前页配置:', routeConfig.key)
     const keys = routeConfig.key.split('.')
-    let currentLabel = dict as any
+    console.log('🍞 [Breadcrumbs] 当前页键路径:', keys)
 
+    let currentLabel = dict as any
     for (const key of keys) {
+        console.log(`🍞 [Breadcrumbs] 查找当前页键 "${key}":`, currentLabel?.[key])
         currentLabel = currentLabel?.[key]
     }
+
+    console.log('🍞 [Breadcrumbs] 当前页标签对象:', currentLabel)
+    console.log('🍞 [Breadcrumbs] 当前页标题:', currentLabel?.title)
 
     if (currentLabel?.title) {
         breadcrumbs.push({
             label: currentLabel.title,
         })
+        console.log('🍞 [Breadcrumbs] ✅ 添加当前页面包屑:', currentLabel.title)
     } else if (typeof currentLabel === 'string') {
         breadcrumbs.push({
             label: currentLabel,
         })
+        console.log('🍞 [Breadcrumbs] ✅ 添加当前页面包屑(字符串):', currentLabel)
+    } else {
+        console.log('🍞 [Breadcrumbs] ⚠️ 当前页标题不存在')
     }
+
+    console.log('🍞 [Breadcrumbs] 最终面包屑数组:', breadcrumbs)
+    console.log('🍞 [Breadcrumbs] ===== 面包屑生成完成 =====')
 
     return breadcrumbs
 }
