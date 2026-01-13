@@ -1,12 +1,12 @@
-package com.devloom.ai.toolbox.investment.infrastructure.adapter.fallback;
+package com.devloom.ai.toolbox.investment.infra.adapter.fallback;
 
 import com.devloom.ai.toolbox.investment.domain.enums.DataSourceType;
 import com.devloom.ai.toolbox.investment.domain.enums.KLinePeriod;
 import com.devloom.ai.toolbox.investment.domain.enums.MarketType;
 import com.devloom.ai.toolbox.investment.domain.model.*;
-import com.devloom.ai.toolbox.investment.infrastructure.adapter.AbstractMarketDataAdapter;
-import com.devloom.ai.toolbox.investment.infrastructure.cache.CacheKeyGenerator;
-import com.devloom.ai.toolbox.investment.infrastructure.quality.DataQualityValidator;
+import com.devloom.ai.toolbox.investment.infra.adapter.AbstractMarketDataAdapter;
+import com.devloom.ai.toolbox.investment.infra.cache.CacheKeyGenerator;
+import com.devloom.ai.toolbox.investment.infra.quality.DataQualityValidator;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;

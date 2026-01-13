@@ -1,4 +1,4 @@
-package com.devloom.ai.toolbox.investment.infrastructure.cache;
+package com.devloom.ai.toolbox.investment.infra.cache;
 
 import com.devloom.ai.toolbox.investment.config.MarketDataProperties;
 import com.devloom.ai.toolbox.investment.domain.enums.KLinePeriod;

@@ -7,6 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 这是一个全栈 AI 工具箱项目,采用前后端分离的 monorepo 架构:
 - **后端**: Spring Boot 4.0.1 + Java 21 + PostgreSQL + Redis (DDD 分层架构)
 - **前端**: Next.js 16 + React 19 + TypeScript (静态导出模式)
+- **Python 网关**: FastAPI + akshare + Redis (金融数据网关)
 
 ## 快速开始
 
@@ -16,6 +17,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 cd backend
 ./mvnw spring-boot:run    # 启动开发服务器 (自动启动 Docker Compose)
 ./mvnw test               # 运行测试
+```
+
+### Python 网关开发
+
+```bash
+cd python-services
+uv venv && source .venv/bin/activate
+uv pip install -e ".[akshare,all]"  # 安装依赖
+python run.py              # 启动开发服务器 (端口 8081)
 ```
 
 ### 前端开发
@@ -34,6 +44,7 @@ pnpm build                # 构建静态导出
 **详细的开发规范和架构说明请查看各子项目的 CLAUDE.md**:
 - **后端**: [backend/CLAUDE.md](./backend/CLAUDE.md) - Spring Boot DDD 架构、开发规范、数据库迁移
 - **前端**: [frontend/CLAUDE.md](./frontend/CLAUDE.md) - Next.js 架构、API 调用、国际化、组件开发
+- **Python 网关**: [python-services/CLAUDE.md](./python-services/CLAUDE.md) - FastAPI 网关、模块化架构、数据源集成
 
 ### 项目文档 (docs/)
 

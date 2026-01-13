@@ -10,7 +10,7 @@ class Settings(BaseSettings):
 
     # 服务配置
     host: str = "0.0.0.0"
-    port: int = 8080
+    port: int = 8081
     debug: bool = False
 
     # 日志配置

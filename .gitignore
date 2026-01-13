@@ -21,3 +21,4 @@ venv/
 build/
 dist/
 .uv-cache/
+*.iml

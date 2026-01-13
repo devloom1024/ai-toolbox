@@ -1,12 +1,10 @@
-package com.devloom.ai.toolbox.investment.infrastructure.adapter.akshare;
+package com.devloom.ai.toolbox.investment.infra.adapter.akshare;
 
 import com.devloom.ai.toolbox.investment.domain.model.QuoteData;
 import com.devloom.ai.toolbox.investment.domain.model.KLineData;
-import com.devloom.ai.toolbox.investment.domain.model.FundamentalData;
-import com.devloom.ai.toolbox.investment.domain.model.CapitalFlowData;
-import com.devloom.ai.toolbox.investment.infrastructure.quality.DataCleaner;
-import com.devloom.ai.toolbox.investment.infrastructure.quality.DataQualityValidator;
-import com.devloom.ai.toolbox.investment.infrastructure.quality.ValidationResult;
+import com.devloom.ai.toolbox.investment.infra.quality.DataCleaner;
+import com.devloom.ai.toolbox.investment.infra.quality.DataQualityValidator;
+import com.devloom.ai.toolbox.investment.infra.quality.ValidationResult;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 

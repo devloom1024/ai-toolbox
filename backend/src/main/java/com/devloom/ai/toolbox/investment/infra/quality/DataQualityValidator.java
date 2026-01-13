@@ -1,4 +1,4 @@
-package com.devloom.ai.toolbox.investment.infrastructure.quality;
+package com.devloom.ai.toolbox.investment.infra.quality;
 
 import com.devloom.ai.toolbox.investment.domain.enums.DataQuality;
 import com.devloom.ai.toolbox.investment.domain.enums.MarketType;

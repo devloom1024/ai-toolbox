@@ -1,4 +1,4 @@
-package com.devloom.ai.toolbox.investment.infrastructure.health;
+package com.devloom.ai.toolbox.investment.infra.health;
 
 import com.devloom.ai.toolbox.investment.config.MarketDataProperties;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;

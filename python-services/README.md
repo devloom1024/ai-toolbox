@@ -78,17 +78,17 @@ cp .env.example .env
 
 ```bash
 # 开发模式 (支持热重载)
-uvicorn gateway.app:app --reload --host 0.0.0.0 --port 8080
+uvicorn gateway.app:app --reload --host 0.0.0.0 --port 8081
 
 # 生产模式
-uvicorn gateway.app:app --host 0.0.0.0 --port 8080 --workers 4
+uvicorn gateway.app:app --host 0.0.0.0 --port 8081 --workers 4
 ```
 
 #### 5. 访问文档
 
-- **Swagger UI**: http://localhost:8080/docs
-- **ReDoc**: http://localhost:8080/redoc
-- **健康检查**: http://localhost:8080/api/v1/health
+- **Swagger UI**: http://localhost:8081/docs
+- **ReDoc**: http://localhost:8081/redoc
+- **健康检查**: http://localhost:8081/api/v1/health
 
 ### Docker 部署
 
@@ -116,7 +116,7 @@ docker build -t python-gateway:latest .
 # 运行容器
 docker run -d \
   --name python-gateway \
-  -p 8080:8080 \
+  -p 8081:8081 \
   -e REDIS_URL=redis://host.docker.internal:6379 \
   python-gateway:latest
 ```
@@ -162,7 +162,7 @@ GET /api/v1/akshare/capital/flow?symbol=600000
 | 变量名                  | 默认值               | 说明                     |
 | ----------------------- | -------------------- | ------------------------ |
 | `HOST`                  | `0.0.0.0`            | 服务监听地址             |
-| `PORT`                  | `8080`               | 服务端口                 |
+| `PORT`                  | `8081`               | 服务端口                 |
 | `DEBUG`                 | `false`              | 调试模式                 |
 | `LOG_LEVEL`             | `INFO`               | 日志级别                 |
 | `REDIS_URL`             | `redis://localhost:6379` | Redis 连接 URL       |
@@ -314,7 +314,7 @@ public class AkshareClient {
 # application.yml
 python:
   gateway:
-    url: http://localhost:8080
+    url: http://localhost:8081
     timeout: 10s
 ```
 
@@ -345,7 +345,7 @@ python:
 ### 健康检查
 
 ```bash
-curl http://localhost:8080/api/v1/health
+curl http://localhost:8081/api/v1/health
 ```
 
 响应示例:

@@ -1,21 +1,15 @@
-package com.devloom.ai.toolbox.investment.infrastructure.adapter.akshare;
+package com.devloom.ai.toolbox.investment.infra.adapter.akshare;
 
 import com.devloom.ai.toolbox.investment.domain.enums.DataSourceType;
 import com.devloom.ai.toolbox.investment.domain.enums.KLinePeriod;
 import com.devloom.ai.toolbox.investment.domain.enums.MarketType;
 import com.devloom.ai.toolbox.investment.domain.model.*;
-import com.devloom.ai.toolbox.investment.infrastructure.adapter.AbstractMarketDataAdapter;
-import com.devloom.ai.toolbox.investment.infrastructure.health.DataSourceHealthChecker;
+import com.devloom.ai.toolbox.investment.infra.adapter.AbstractMarketDataAdapter;
+import com.devloom.ai.toolbox.investment.infra.health.DataSourceHealthChecker;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.math.BigDecimal;
-import java.time.Duration;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 

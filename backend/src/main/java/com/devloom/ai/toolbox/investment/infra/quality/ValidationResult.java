@@ -1,4 +1,4 @@
-package com.devloom.ai.toolbox.investment.infrastructure.quality;
+package com.devloom.ai.toolbox.investment.infra.quality;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

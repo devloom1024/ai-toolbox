@@ -18,8 +18,8 @@ if not exist ".env" (
 )
 
 echo Starting Python Services Gateway...
-echo Documentation: http://localhost:8080/docs
-echo Health Check: http://localhost:8080/api/v1/health
+echo Documentation: http://localhost:8081/docs
+echo Health Check: http://localhost:8081/api/v1/health
 echo.
 echo Press Ctrl+C to stop
 echo.

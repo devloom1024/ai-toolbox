@@ -1,10 +1,10 @@
-package com.devloom.ai.toolbox.investment.infrastructure.router;
+package com.devloom.ai.toolbox.investment.infra.router;
 
 import com.devloom.ai.toolbox.investment.config.MarketDataProperties;
 import com.devloom.ai.toolbox.investment.domain.enums.MarketType;
-import com.devloom.ai.toolbox.investment.infrastructure.adapter.MarketDataAdapter;
-import com.devloom.ai.toolbox.investment.infrastructure.adapter.MarketDataAdapterRegistry;
-import com.devloom.ai.toolbox.investment.infrastructure.health.DataSourceHealthChecker;
+import com.devloom.ai.toolbox.investment.infra.adapter.MarketDataAdapter;
+import com.devloom.ai.toolbox.investment.infra.adapter.MarketDataAdapterRegistry;
+import com.devloom.ai.toolbox.investment.infra.health.DataSourceHealthChecker;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 

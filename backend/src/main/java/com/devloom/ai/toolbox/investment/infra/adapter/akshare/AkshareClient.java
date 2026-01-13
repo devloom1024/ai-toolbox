@@ -1,4 +1,4 @@
-package com.devloom.ai.toolbox.investment.infrastructure.adapter.akshare;
+package com.devloom.ai.toolbox.investment.infra.adapter.akshare;
 
 import com.devloom.ai.toolbox.investment.domain.model.CapitalFlowData;
 import com.devloom.ai.toolbox.investment.domain.model.FundamentalData;

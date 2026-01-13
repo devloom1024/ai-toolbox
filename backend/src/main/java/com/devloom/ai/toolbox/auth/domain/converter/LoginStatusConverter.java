@@ -4,6 +4,9 @@ import com.devloom.ai.toolbox.auth.domain.enums.LoginStatus;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 
+/**
+ * @author huangkl
+ */
 @Converter(autoApply = true)
 public class LoginStatusConverter implements AttributeConverter<LoginStatus, Short> {
 

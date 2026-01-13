@@ -29,8 +29,8 @@ def main():
 
     # 启动 uvicorn
     print("🚀 启动 Python Services Gateway...")
-    print("📖 文档地址: http://localhost:8080/docs")
-    print("🔍 健康检查: http://localhost:8080/api/v1/health")
+    print("📖 文档地址: http://localhost:8081/docs")
+    print("🔍 健康检查: http://localhost:8081/api/v1/health")
     print("\n按 Ctrl+C 停止服务\n")
 
     try:
@@ -38,7 +38,7 @@ def main():
         uvicorn.run(
             "gateway.app:app",
             host="0.0.0.0",
-            port=8080,
+            port=8081,
             reload=True,
             log_level="info",
         )

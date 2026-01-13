@@ -1,4 +1,4 @@
-package com.devloom.ai.toolbox.investment.infrastructure.adapter;
+package com.devloom.ai.toolbox.investment.infra.adapter;
 
 import com.devloom.ai.toolbox.investment.domain.enums.KLinePeriod;
 import com.devloom.ai.toolbox.investment.domain.enums.MarketType;

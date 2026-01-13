@@ -35,11 +35,11 @@ ENV PATH="/opt/venv/bin:$PATH" \
     PYTHONDONTWRITEBYTECODE=1
 
 # 暴露端口
-EXPOSE 8080
+EXPOSE 8081
 
 # 健康检查
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD python -c "import requests; requests.get('http://localhost:8080/api/v1/health')" || exit 1
+    CMD python -c "import requests; requests.get('http://localhost:8081/api/v1/health')" || exit 1
 
 # 启动命令
-CMD ["uvicorn", "gateway.app:app", "--host", "0.0.0.0", "--port", "8080"]
+CMD ["uvicorn", "gateway.app:app", "--host", "0.0.0.0", "--port", "8081"]
