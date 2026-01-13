@@ -6,3 +6,5 @@ backend/.env
 *.local.json
 .tmp
 .vscode
+tmpclaude*
+/python-services/python_services.egg-info/
