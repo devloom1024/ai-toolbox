@@ -1,0 +1,12 @@
+# uv 配置
+cache-dir = ".uv-cache"
+
+# 索引配置 - 使用数组形式定义多个源
+[[index]]
+name = "aliyun"
+url = "https://mirrors.aliyun.com/pypi/simple/"
+default = true
+
+[[index]]
+name = "pypi"
+url = "https://pypi.org/simple"

@@ -6,3 +6,18 @@ backend/.env
 *.local.json
 .tmp
 .vscode
+tmpclaude*
+/python-services/python_services.egg-info/
+
+# Python cache and compiled files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.venv/
+venv/
+*.egg-info/
+.eggs/
+build/
+dist/
+.uv-cache/

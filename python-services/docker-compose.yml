@@ -1,0 +1,69 @@
+version: '3.8'
+
+services:
+  # Python Services Gateway
+  python-gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: python-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      # 服务配置
+      - HOST=0.0.0.0
+      - PORT=8080
+      - DEBUG=false
+
+      # 日志配置
+      - LOG_LEVEL=INFO
+
+      # Redis 配置
+      - REDIS_URL=redis://redis:6379
+
+      # 超时配置
+      - TIMEOUT_DEFAULT=10
+      - TIMEOUT_AKSHARE=5
+      - TIMEOUT_YFINANCE=10
+
+      # 限流配置
+      - RATE_LIMIT_REQUESTS=60
+      - RATE_LIMIT_WINDOW=60
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - python-services-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/v1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # Redis (可选 - 用于缓存和限流)
+  redis:
+    image: redis:7-alpine
+    container_name: python-gateway-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - python-services-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    command: redis-server --appendonly yes
+
+networks:
+  python-services-network:
+    driver: bridge
+
+volumes:
+  redis-data:
+    driver: local
