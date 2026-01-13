@@ -39,6 +39,9 @@ import org.springframework.util.StringUtils;
 @RequiredArgsConstructor
 public class AuthApplicationService {
 
+    private static final int MAX_LOGIN_ATTEMPTS = 5;
+    private static final int LOCKOUT_DURATION_MINUTES = 15;
+
     private final UserRepository userRepository;
     private final UserAuthRepository userAuthRepository;
     private final VerificationCodeService verificationCodeService;
@@ -53,11 +56,15 @@ public class AuthApplicationService {
         if (userAuthRepository.existsByIdentityTypeAndIdentifier(IdentityType.EMAIL, email)) {
             throw new BizException(BizErrorCode.EMAIL_EXISTS);
         }
+        if (userRepository.existsByNickname(request.getNickname())) {
+            throw new BizException(BizErrorCode.NICKNAME_EXISTS);
+        }
         verificationCodeService.verifyAndConsume(email, VerificationScene.REGISTER, request.getCode());
         UserEntity user = UserEntity.builder()
                 .nickname(request.getNickname())
                 .avatar("")
                 .status(UserStatus.ACTIVE)
+                .failedLoginAttempts(0)
                 .build();
         userRepository.save(user);
         UserAuthEntity auth = UserAuthEntity.builder()
@@ -93,17 +100,37 @@ public class AuthApplicationService {
             throw new BizException(BizErrorCode.PASSWORD_MISMATCH);
         }
 
-        // 账号已锁定
-        if (user.getStatus() == UserStatus.LOCKED) {
-            recordLogin(user, identityType, identifier, ip, userAgent, LoginStatus.FAILURE);
-            throw new BizException(BizErrorCode.ACCOUNT_LOCKED);
+        // 检查账户是否被临时锁定
+        if (user.getLockedAt() != null) {
+            if (user.getLockedAt().isAfter(clock.instant().minus(LOCKOUT_DURATION_MINUTES, java.time.temporal.ChronoUnit.MINUTES))) {
+                recordLogin(user, identityType, identifier, ip, userAgent, LoginStatus.FAILURE);
+                throw new BizException(BizErrorCode.ACCOUNT_LOCKED);
+            }
+            // 锁定超时，重置失败次数
+            user.setLockedAt(null);
+            user.setFailedLoginAttempts(0);
         }
 
         // 密码错误
         if (!passwordEncoder.matches(request.getPassword(), auth.getCredential())) {
+            int failedAttempts = user.getFailedLoginAttempts() + 1;
+            user.setFailedLoginAttempts(failedAttempts);
+            if (failedAttempts >= MAX_LOGIN_ATTEMPTS) {
+                user.setLockedAt(clock.instant());
+                user.setStatus(UserStatus.LOCKED);
+            }
+            userRepository.save(user);
             recordLogin(user, identityType, identifier, ip, userAgent, LoginStatus.FAILURE);
             throw new BizException(BizErrorCode.PASSWORD_MISMATCH);
         }
+
+        // 登录成功：重置失败次数和锁定状态
+        user.setFailedLoginAttempts(0);
+        user.setLockedAt(null);
+        if (user.getStatus() == UserStatus.LOCKED) {
+            user.setStatus(UserStatus.ACTIVE);
+        }
+        userRepository.save(user);
 
         auth.setLastLoginAt(clock.instant());
         userAuthRepository.save(auth);

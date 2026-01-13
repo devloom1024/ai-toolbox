@@ -268,19 +268,28 @@ paths:
       tags:
         - 自选管理
       summary: 搜索股票
+      description: 根据关键字搜索股票，支持按市场类型筛选，不传 market 则搜索所有市场
       parameters:
         - name: keyword
           in: query
           required: true
           schema:
             type: string
-          description: 搜索关键词
+          description: 搜索关键词（股票代码或名称）
         - name: market
           in: query
           schema:
             type: string
-            enum: [A_SHARE, HK, US, ETF, FUND]
-          description: 市场类型
+            enum: [CN, HK, US, ETF, FUND]
+          description: 市场类型（CN=A股, HK=港股, US=美股, ETF=ETF, FUND=场外基金），不传则搜索所有市场
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+            maximum: 100
+          description: 返回结果数量限制
       responses:
         '200':
           description: 成功
@@ -1419,33 +1428,6 @@ components:
           type: string
           description: 股票/基金名称
           example: "贵州茅台"
-        market:
-          type: string
-          description: 市场类型
-          enum: [A_SHARE, HK, US, ETF, FUND]
-          example: "A_SHARE"
-        type:
-          type: string
-          description: |
-            标的类型：
-            - STOCK：股票
-            - ETF：交易所交易基金
-            - FUND：场外基金
-            - INDEX：指数
-          enum: [STOCK, ETF, FUND, INDEX]
-          example: "STOCK"
-        fullCode:
-          type: string
-          description: 完整代码（含市场前缀，如 SH600519）
-          example: "SH600519"
-        pinyin:
-          type: string
-          description: 拼音简拼
-          example: "GZMT"
-        industry:
-          type: string
-          description: 所属行业
-          example: "白酒"
 
     # ============ 持仓管理 ============
     PositionListResponse:

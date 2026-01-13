@@ -159,18 +159,6 @@ public class AkshareDataSource extends AbstractMarketDataAdapter {
         try {
             List<StockSearchResult> results = client.search(keyword, market, limit);
             healthChecker.recordSuccess(getName());
-
-            // 计算匹配得分并排序
-            for (StockSearchResult result : results) {
-                result.calculateMatchScore(keyword);
-            }
-            results.sort((a, b) -> Double.compare(b.getScore(), a.getScore()));
-
-            // 限制返回数量
-            if (results.size() > limit) {
-                results = results.subList(0, limit);
-            }
-
             return results;
         } catch (Exception e) {
             log.error("Failed to search for keyword: {}", keyword, e);

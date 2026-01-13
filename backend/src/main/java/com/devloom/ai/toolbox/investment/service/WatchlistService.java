@@ -6,17 +6,20 @@ import com.devloom.ai.toolbox.common.security.CurrentUserHolder;
 import com.devloom.ai.toolbox.investment.domain.entity.WatchlistEntity;
 import com.devloom.ai.toolbox.investment.domain.entity.WatchlistGroupEntity;
 import com.devloom.ai.toolbox.investment.domain.enums.Market;
+import com.devloom.ai.toolbox.investment.domain.enums.MarketType;
+import com.devloom.ai.toolbox.investment.domain.model.StockSearchResult;
 import com.devloom.ai.toolbox.investment.domain.repository.WatchlistGroupRepository;
 import com.devloom.ai.toolbox.investment.domain.repository.WatchlistRepository;
 import com.devloom.ai.toolbox.investment.dto.request.WatchlistAddRequest;
 import com.devloom.ai.toolbox.investment.dto.response.*;
+import com.devloom.ai.toolbox.investment.infra.adapter.MarketDataAdapter;
+import com.devloom.ai.toolbox.investment.infra.router.DataSourceRouter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -33,6 +36,7 @@ public class WatchlistService {
 
     private final WatchlistRepository watchlistRepository;
     private final WatchlistGroupRepository watchlistGroupRepository;
+    private final DataSourceRouter dataSourceRouter;
 
     /**
      * 获取自选股列表
@@ -194,7 +198,7 @@ public class WatchlistService {
     }
 
     /**
-     * 搜索股票（TODO: 接入外部数据源）
+     * 搜索股票
      *
      * @param keyword 搜索关键词
      * @param market  市场类型
@@ -204,9 +208,20 @@ public class WatchlistService {
         Long userId = CurrentUserHolder.getUserId();
         log.debug("用户 {} 搜索股票，keyword={}, market={}", userId, keyword, market);
 
-        // TODO: 接入 akshare 或其他数据源进行真实搜索
-        // 这里返回模拟数据用于测试
-        return getMockSearchResults(keyword, market);
+        // 转换市场类型
+        MarketType marketType = market != null ? MarketType.fromMarket(market) : null;
+
+        // 通过数据源路由器获取适配器并搜索
+        try {
+            MarketDataAdapter adapter = dataSourceRouter.selectAdapter(marketType);
+            List<StockSearchResult> results = adapter.search(keyword, marketType, 20);
+            log.debug("搜索到 {} 条结果", results.size());
+            return results;
+        } catch (Exception e) {
+            log.error("搜索股票失败，keyword={}, market={}", keyword, market, e);
+            // 返回空列表而不是抛出异常
+            return List.of();
+        }
     }
 
     /**
@@ -265,72 +280,5 @@ public class WatchlistService {
     private Integer getMockConfidence() {
         // 模拟置信度
         return 78;
-    }
-
-    private List<StockSearchResult> getMockSearchResults(String keyword, Market market) {
-        List<StockSearchResult> results = new ArrayList<>();
-
-        // 模拟搜索结果
-        if (keyword.contains("600519") || keyword.contains("贵州茅台") || keyword.contains("gzm")) {
-            results.add(StockSearchResult.builder()
-                    .symbol("600519")
-                    .name("贵州茅台")
-                    .market(Market.A_SHARE)
-                    .type(StockSearchResult.SecurityType.STOCK)
-                    .fullCode("SH600519")
-                    .pinyin("GZMT")
-                    .industry("白酒")
-                    .build());
-        }
-
-        if (keyword.contains("000001") || keyword.contains("上证指数") || keyword.contains("sz")) {
-            results.add(StockSearchResult.builder()
-                    .symbol("000001")
-                    .name("上证指数")
-                    .market(Market.A_SHARE)
-                    .type(StockSearchResult.SecurityType.INDEX)
-                    .fullCode("SZ000001")
-                    .pinyin("SZZS")
-                    .industry("指数")
-                    .build());
-        }
-
-        if (keyword.contains("300750") || keyword.contains("宁德时代") || keyword.contains("ndsd")) {
-            results.add(StockSearchResult.builder()
-                    .symbol("300750")
-                    .name("宁德时代")
-                    .market(Market.A_SHARE)
-                    .type(StockSearchResult.SecurityType.STOCK)
-                    .fullCode("SZ300750")
-                    .pinyin("NDSD")
-                    .industry("新能源")
-                    .build());
-        }
-
-        if (keyword.contains("159915") || keyword.contains("创业板ETF") || keyword.contains("cyb")) {
-            results.add(StockSearchResult.builder()
-                    .symbol("159915")
-                    .name("创业板ETF")
-                    .market(Market.ETF)
-                    .type(StockSearchResult.SecurityType.ETF)
-                    .fullCode("SZ159915")
-                    .pinyin("CYBETF")
-                    .industry("创业板")
-                    .build());
-        }
-
-        if (keyword.contains("AAPL") || keyword.contains("苹果") || keyword.contains("apple")) {
-            results.add(StockSearchResult.builder()
-                    .symbol("AAPL")
-                    .name("苹果公司")
-                    .market(Market.US)
-                    .type(StockSearchResult.SecurityType.STOCK)
-                    .fullCode("USAAPL")
-                    .pinyin("APPL")
-                    .industry("科技")
-                    .build());
-        }
-
-        return results;
     }
 }

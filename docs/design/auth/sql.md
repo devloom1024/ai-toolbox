@@ -23,6 +23,8 @@ CREATE TABLE t_user (
   nickname VARCHAR(64) NOT NULL DEFAULT '',
   avatar VARCHAR(512) NOT NULL DEFAULT '',
   status VARCHAR(16) NOT NULL DEFAULT 'ACTIVE' CHECK (status IN ('ACTIVE', 'LOCKED', 'DELETED')),
+  failed_login_attempts INTEGER NOT NULL DEFAULT 0,
+  locked_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
@@ -33,6 +35,8 @@ COMMENT ON COLUMN t_user.id IS '用户主键';
 COMMENT ON COLUMN t_user.nickname IS '昵称';
 COMMENT ON COLUMN t_user.avatar IS '头像 URL';
 COMMENT ON COLUMN t_user.status IS '状态：ACTIVE=正常 LOCKED=锁定 DELETED=注销';
+COMMENT ON COLUMN t_user.failed_login_attempts IS '登录失败次数';
+COMMENT ON COLUMN t_user.locked_at IS '账户锁定时间（登录失败超限后记录）';
 COMMENT ON COLUMN t_user.created_at IS '创建时间';
 COMMENT ON COLUMN t_user.updated_at IS '更新时间';
 
@@ -42,6 +46,13 @@ BEFORE UPDATE ON t_user
 FOR EACH ROW
 EXECUTE FUNCTION update_updated_at_column();
 ```
+
+### 登录安全机制
+
+- **登录失败计数**：每次密码错误时 `failed_login_attempts + 1`
+- **账户锁定**：连续失败 5 次后 `locked_at = CURRENT_TIMESTAMP`，账户锁定 15 分钟
+- **自动解锁**：锁定超时后 `locked_at = NULL`，`failed_login_attempts = 0`
+- **登录成功重置**：密码验证成功后 `failed_login_attempts = 0`，`locked_at = NULL`
 
 ## t_user_auth
 
@@ -92,12 +103,14 @@ CREATE TABLE t_verification_code (
   code VARCHAR(10) NOT NULL,
   expire_at TIMESTAMPTZ NOT NULL,
   used BOOLEAN NOT NULL DEFAULT FALSE,
+  failed_attempts INTEGER NOT NULL DEFAULT 0,
+  locked_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- 创建部分索引（只索引未使用的验证码，按 expire_at 过滤）
-CREATE INDEX idx_t_verification_code_active 
-  ON t_verification_code (identifier, channel, scene, expire_at) 
+CREATE INDEX idx_t_verification_code_active
+  ON t_verification_code (identifier, channel, scene, expire_at)
   WHERE used = FALSE;
 
 -- 添加注释
@@ -109,8 +122,17 @@ COMMENT ON COLUMN t_verification_code.identifier IS '邮箱地址';
 COMMENT ON COLUMN t_verification_code.code IS '验证码';
 COMMENT ON COLUMN t_verification_code.expire_at IS '过期时间';
 COMMENT ON COLUMN t_verification_code.used IS '是否已使用';
+COMMENT ON COLUMN t_verification_code.failed_attempts IS '验证失败次数';
+COMMENT ON COLUMN t_verification_code.locked_at IS '验证码锁定时间（失败超限后记录）';
 COMMENT ON COLUMN t_verification_code.created_at IS '创建时间';
 ```
+
+### 验证码安全机制
+
+- **验证失败计数**：每次验证码错误时 `failed_attempts + 1`
+- **验证码锁定**：连续失败 5 次后 `locked_at = CURRENT_TIMESTAMP`，验证码锁定 15 分钟
+- **自动解锁**：锁定超时后 `locked_at = NULL`，`failed_attempts = 0`
+- **验证成功重置**：验证码正确后 `used = TRUE`，记录失效
 
 ## t_refresh_token
 
@@ -119,6 +141,7 @@ CREATE TABLE t_refresh_token (
   id BIGSERIAL PRIMARY KEY,
   user_id BIGINT NOT NULL,
   token VARCHAR(64) NOT NULL,
+  token_hash VARCHAR(64) NOT NULL DEFAULT '',
   device VARCHAR(64) NOT NULL DEFAULT '',
   expires_at TIMESTAMPTZ NOT NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -126,7 +149,7 @@ CREATE TABLE t_refresh_token (
 );
 
 -- 创建部分索引（索引 user_id + device + expires_at，业务侧清理过期 Token）
-CREATE INDEX idx_t_refresh_token_user_device 
+CREATE INDEX idx_t_refresh_token_user_device
   ON t_refresh_token (user_id, device, expires_at);
 
 -- 确保同一用户在同一设备上只有一个有效的 Refresh Token
@@ -137,11 +160,18 @@ CREATE UNIQUE INDEX uk_t_refresh_token_user_device
 COMMENT ON TABLE t_refresh_token IS 'Refresh Token 管理';
 COMMENT ON COLUMN t_refresh_token.id IS '记录主键';
 COMMENT ON COLUMN t_refresh_token.user_id IS '用户 ID';
-COMMENT ON COLUMN t_refresh_token.token IS 'Refresh Token 摘要';
+COMMENT ON COLUMN t_refresh_token.token IS 'Refresh Token（用于查找，实际存储原始值）';
+COMMENT ON COLUMN t_refresh_token.token_hash IS 'Refresh Token 的 MD5 哈希值（用于验证）';
 COMMENT ON COLUMN t_refresh_token.device IS '终端标识';
 COMMENT ON COLUMN t_refresh_token.expires_at IS '过期时间';
 COMMENT ON COLUMN t_refresh_token.created_at IS '创建时间';
 ```
+
+### Token 安全机制
+
+- **双重存储**：`token` 字段用于快速查找，`token_hash` 字段用于安全验证
+- **Token 验证**：刷新时校验 `MD5(token) == token_hash`，防止 token 替换攻击
+- **Token 吊销**：每次刷新或登录时，删除该用户该设备上的所有旧 Token
 
 ## t_user_oauth_profile
 
@@ -246,21 +276,42 @@ COMMENT ON COLUMN t_login_audit.created_at IS '登录时间';
 
 ### 邮箱注册流程
 1. 前端调用 `/api/v1/auth/code/email`（scene=REGISTER）获取验证码
-2. 后端插入 `t_verification_code` 记录并发送邮件
-3. 前端提交注册信息到 `/api/v1/auth/register`
-4. 后端在**单个事务**中：
+2. 后端检查请求频率（默认 60 秒内只能请求一次）
+3. 后端插入 `t_verification_code` 记录并发送邮件
+4. 前端提交注册信息到 `/api/v1/auth/register`
+5. 后端在**单个事务**中：
    - 校验验证码（查询 `t_verification_code`，验证 scene=REGISTER）
-   - 创建用户（插入 `t_user`）
+   - **验证码锁定检查**：`locked_at` 不为空且未超时则拒绝
+   - **验证码校验**：验证失败时 `failed_attempts + 1`，超限则锁定
+   - 创建用户（插入 `t_user`，`failed_login_attempts = 0`）
    - 创建认证信息（插入 `t_user_auth`，identity_type=EMAIL，verified=TRUE）
    - 标记验证码已使用（更新 `t_verification_code.used=TRUE`）
-   - 创建 Refresh Token（插入 `t_refresh_token`）
+   - 创建 Refresh Token（插入 `t_refresh_token`，包含 token_hash）
+
+### 用户登录流程
+1. 前端提交登录信息到 `/api/v1/auth/login`
+2. 后端在**单个事务**中：
+   - 查询用户认证信息（`t_user_auth`）
+   - **账户锁定检查**：`locked_at` 不为空且未超时则拒绝
+   - **密码校验**：验证失败时 `failed_login_attempts + 1`，超限则锁定账户
+   - **登录成功重置**：`failed_login_attempts = 0`，`locked_at = NULL`
+   - 更新 `t_user_auth.last_login_at`
+   - 记录登录审计（`t_login_audit`）
+   - 创建 Refresh Token（插入 `t_refresh_token`，包含 token_hash）
+
+### 登录安全机制
+
+- **防用户名枚举**：用户不存在时也记录失败的登录审计
+- **连续失败锁定**：连续 5 次密码错误后锁定账户 15 分钟
+- **自动解锁**：锁定超时后自动重置失败次数
 
 ### LinuxDo OAuth 登录流程
 1. 前端跳转到 `/api/v1/auth/oauth/linuxdo/authorize`
-2. 后端生成 state 并重定向到 LinuxDo OAuth 授权页面
-3. 用户在 LinuxDo 授权后，LinuxDo 回调 `/api/v1/auth/oauth/linuxdo/callback`
-4. 后端在**单个事务**中：
-   - 验证 state 参数
+2. 后端生成 state 并存储到 Redis（TTL 30 分钟）
+3. 后端重定向到 LinuxDo OAuth 授权页面
+4. 用户在 LinuxDo 授权后，LinuxDo 回调 `/api/v1/auth/oauth/linuxdo/callback`
+5. 后端在**单个事务**中：
+   - 验证并删除 state（Redis DEL）
    - 用 OAuth code 换取 access_token
    - 调用 LinuxDo API 获取用户信息
    - 查询 `t_user_oauth_profile` 检查是否已注册
@@ -271,15 +322,19 @@ COMMENT ON COLUMN t_login_audit.created_at IS '登录时间';
    - **如果已注册**：
      - 更新 `t_user_oauth_profile` 的 token 和资料
      - 更新 `t_user_auth.last_login_at`
-   - 创建 Refresh Token（插入 `t_refresh_token`）
+   - 记录 OAuth 登录审计（`t_login_audit`）
+   - 创建 Refresh Token（插入 `t_refresh_token`，包含 token_hash）
 
 ### 重置密码流程
 1. 前端调用 `/api/v1/auth/code/email`（scene=RESET_PASSWORD）获取验证码
-2. 后端插入 `t_verification_code` 记录并发送邮件
-3. 前端提交重置密码信息到 `/api/v1/auth/password/reset`
-4. 后端在**单个事务**中：
+2. 后端检查请求频率
+3. 后端插入 `t_verification_code` 记录并发送邮件
+4. 前端提交重置密码信息到 `/api/v1/auth/password/reset`
+5. 后端在**单个事务**中：
    - 校验验证码（查询 `t_verification_code`，验证 scene=RESET_PASSWORD）
+   - **验证码锁定检查**：`locked_at` 不为空且未超时则拒绝
    - 查询 `t_user_auth` 确认用户存在
    - 更新密码（更新 `t_user_auth.credential`）
+   - **验证码校验**：验证失败时 `failed_attempts + 1`，超限则锁定
    - 标记验证码已使用（更新 `t_verification_code.used=TRUE`）
    - 删除该用户的所有 Refresh Token（安全考虑，强制重新登录）

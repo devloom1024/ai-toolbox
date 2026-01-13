@@ -16,8 +16,6 @@ import java.util.Base64;
 
 /**
  * LinuxDo API 客户端
- *
- * @author DevLoom Team
  */
 @Component
 @RequiredArgsConstructor

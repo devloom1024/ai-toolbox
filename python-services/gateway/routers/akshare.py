@@ -1,12 +1,15 @@
 """
 Akshare API 路由
 """
+import traceback
+
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
 
 from ..modules import registry
 from ..modules.akshare.mapper import AkshareMapper
 from ..modules.akshare.module import AkshareModule
+from ..utils.logger import logger
 
 router = APIRouter()
 
@@ -44,6 +47,7 @@ async def get_realtime_quote(symbol: str = Query(..., description="股票代码"
         data = AkshareMapper.map_quote_data(df)
         return QuoteResponse(data=data)
     except Exception as e:
+        logger.error("API error", method="get_realtime_quote", error=str(e), traceback=traceback.format_exc())
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -69,23 +73,31 @@ async def get_kline(
         data = AkshareMapper.map_kline_data(df)
         return QuoteResponse(data=data)
     except Exception as e:
+        logger.error("API error", method="get_kline", error=str(e), traceback=traceback.format_exc())
         raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.get("/search", response_model=QuoteResponse)
-async def search_stock(keyword: str = Query(..., description="搜索关键字")):
+async def search_stock(
+    keyword: str = Query(..., description="搜索关键字（股票代码或名称）"),
+    market: str | None = Query(None, description="市场类型: CN=A股, HK=港股, US=美股, ETF=ETF, FUND=基金"),
+    limit: int = Query(20, ge=1, le=100, description="返回结果数量限制"),
+):
     """
     搜索股票
 
     Args:
         keyword: 股票代码或名称关键字
+        market: 市场类型（可选，不传搜索所有市场）
+        limit: 返回结果数量
     """
     try:
         module = get_akshare_module()
-        df = module.client.search_stock(keyword)
+        df = module.client.search_stock(keyword, market, limit)
         data = AkshareMapper.map_search_results(df)
         return QuoteResponse(data=data)
     except Exception as e:
+        logger.error("API error", method="search_stock", keyword=keyword, market=market, error=str(e), traceback=traceback.format_exc())
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -103,6 +115,7 @@ async def get_company_info(symbol: str = Query(..., description="股票代码"))
         data = AkshareMapper.map_financial_data(df)
         return QuoteResponse(data=data)
     except Exception as e:
+        logger.error("API error", method="get_company_info", error=str(e), traceback=traceback.format_exc())
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -120,6 +133,7 @@ async def get_financial_indicators(symbol: str = Query(..., description="股票�
         data = AkshareMapper.map_financial_data(df)
         return QuoteResponse(data=data)
     except Exception as e:
+        logger.error("API error", method="get_financial_indicators", error=str(e), traceback=traceback.format_exc())
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -137,4 +151,5 @@ async def get_capital_flow(symbol: str = Query(..., description="股票代码"))
         data = AkshareMapper.map_capital_flow(df)
         return QuoteResponse(data=data)
     except Exception as e:
+        logger.error("API error", method="get_capital_flow", error=str(e), traceback=traceback.format_exc())
         raise HTTPException(status_code=500, detail=str(e))

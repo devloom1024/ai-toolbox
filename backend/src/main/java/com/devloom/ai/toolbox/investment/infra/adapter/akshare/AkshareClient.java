@@ -206,7 +206,7 @@ public class AkshareClient {
      * 搜索股票
      *
      * @param keyword 搜索关键字
-     * @param market  市场类型 (可选)
+     * @param market  市场类型 (可选，null 表示搜索所有市场)
      * @param limit   返回数量限制
      * @return 搜索结果列表
      */
@@ -215,11 +215,14 @@ public class AkshareClient {
         try {
             // URL编码关键字
             String encodedKeyword = URLEncoder.encode(keyword, StandardCharsets.UTF_8);
-            String marketParam = market != null ? market.getCode() : "all";
-            String url = baseUrl + "/api/search?keyword=" + encodedKeyword
-                + "&market=" + marketParam
-                + "&limit=" + limit;
 
+            // 构建URL，不传 market 参数表示搜索所有市场
+            StringBuilder urlBuilder = new StringBuilder(baseUrl + "/api/search?keyword=" + encodedKeyword + "&limit=" + limit);
+            if (market != null) {
+                urlBuilder.append("&market=").append(market.getCode());
+            }
+
+            String url = urlBuilder.toString();
             log.debug("Searching stocks from: {}", url);
 
             ResponseEntity<Map> response = restTemplate.exchange(
@@ -266,11 +269,6 @@ public class AkshareClient {
             return StockSearchResult.builder()
                 .symbol(symbol)
                 .name(name)
-                .pinyin(getString(response, "pinyin"))
-                .exchange(getString(response, "exchange"))
-                .price(getBigDecimal(response, "price"))
-                .changeRate(getBigDecimal(response, "change_rate"))
-                .market(com.devloom.ai.toolbox.investment.domain.enums.MarketType.A_SHARE)
                 .build();
         } catch (Exception e) {
             log.error("Failed to map search result: {}", response, e);

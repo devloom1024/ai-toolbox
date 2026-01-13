@@ -38,9 +38,13 @@ public class RefreshTokenEntity {
     @JoinColumn(name = "user_id")
     private UserEntity user;
 
-    /** Refresh Token 值（哈希）。 */
+    /** Refresh Token 值（用于查找，数据库中实际存储哈希值）。 */
     @Column(name = "token", length = 64)
     private String token;
+
+    /** Refresh Token 的哈希值（用于验证，防止 token 泄露）。 */
+    @Column(name = "token_hash", length = 64)
+    private String tokenHash;
 
     /** 设备标识。 */
     private String device;

@@ -43,6 +43,14 @@ public class UserEntity {
     @Enumerated(EnumType.STRING)
     private UserStatus status;
 
+    /** 登录失败次数。 */
+    @Column(name = "failed_login_attempts")
+    private int failedLoginAttempts;
+
+    /** 账户锁定时间。 */
+    @Column(name = "locked_at")
+    private Instant lockedAt;
+
     /** 创建时间。 */
     @Column(name = "created_at", insertable = false, updatable = false)
     private Instant createdAt;

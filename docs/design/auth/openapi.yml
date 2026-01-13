@@ -277,6 +277,53 @@ components:
         code: 2004
         message: password error
         data: null
+    ErrorCodes:
+      type: object
+      description: 业务错误码定义
+      properties:
+        code:
+          type: integer
+          description: 错误码
+        name:
+          type: string
+          description: 错误码名称
+        message:
+          type: string
+          description: 错误描述
+      example:
+        - code: 1005
+          name: RATE_LIMIT
+          message: Too many requests
+        - code: 1010
+          name: OTP_INVALID
+          message: Invalid verification code
+        - code: 1011
+          name: OTP_EXPIRED
+          message: Verification code expired
+        - code: 1012
+          name: OTP_LOCKED
+          message: Verification code is temporarily locked
+        - code: 2001
+          name: EMAIL_EXISTS
+          message: Email already registered
+        - code: 2002
+          name: ACCOUNT_LOCKED
+          message: Account is locked
+        - code: 2003
+          name: PASSWORD_MISMATCH
+          message: Incorrect account or password
+        - code: 2004
+          name: REFRESH_TOKEN_INVALID
+          message: Refresh token invalid
+        - code: 2005
+          name: LINUXDO_NOT_CONFIGURED
+          message: LinuxDo integration is not configured
+        - code: 2006
+          name: LINUXDO_ALREADY_BIND
+          message: LinuxDo account is already bound
+        - code: 2007
+          name: NICKNAME_EXISTS
+          message: Nickname already taken
     ApiResponseRegister:
       allOf:
         - $ref: "#/components/schemas/ApiResponse"
@@ -449,14 +496,13 @@ components:
         avatar:
           type: string
         status:
-          type: integer
-          format: int32
-          enum: [0, 1, 2]
+          type: string
+          enum: [ACTIVE, LOCKED, DELETED]
           description: |
             账号状态：
-            - 0: 待验证（注册后初始状态）
-            - 1: 正常（已验证邮箱）
-            - 2: 已禁用
+            - ACTIVE: 正常
+            - LOCKED: 锁定（登录失败超限或风控触发）
+            - DELETED: 已注销
         bindings:
           type: array
           items:

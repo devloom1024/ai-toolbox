@@ -1,10 +1,13 @@
 package com.devloom.ai.toolbox.auth.service;
 
+import com.devloom.ai.toolbox.auth.domain.entity.LoginAuditEntity;
 import com.devloom.ai.toolbox.auth.domain.entity.UserAuthEntity;
 import com.devloom.ai.toolbox.auth.domain.entity.UserEntity;
 import com.devloom.ai.toolbox.auth.domain.entity.UserOauthProfileEntity;
 import com.devloom.ai.toolbox.auth.domain.enums.IdentityType;
+import com.devloom.ai.toolbox.auth.domain.enums.LoginStatus;
 import com.devloom.ai.toolbox.auth.domain.enums.UserStatus;
+import com.devloom.ai.toolbox.auth.domain.repository.LoginAuditRepository;
 import com.devloom.ai.toolbox.auth.domain.repository.UserAuthRepository;
 import com.devloom.ai.toolbox.auth.domain.repository.UserOauthProfileRepository;
 import com.devloom.ai.toolbox.auth.domain.repository.UserRepository;
@@ -17,14 +20,12 @@ import com.devloom.ai.toolbox.auth.service.support.LinuxDoApiClient.UserInfo;
 import com.devloom.ai.toolbox.common.exception.BizErrorCode;
 import com.devloom.ai.toolbox.common.exception.BizException;
 import com.devloom.ai.toolbox.common.util.RandomUtil;
-
+import java.time.Duration;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -32,28 +33,29 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 /**
  * LinuxDo OAuth 认证服务
- *
- * @author DevLoom Team
  */
 @Service
 @RequiredArgsConstructor
 public class LinuxDoOauthService {
+
+    private static final String STATE_KEY_PREFIX = "oauth:linuxdo:state:";
 
     private final AuthProperties authProperties;
     private final LinuxDoApiClient linuxDoApiClient;
     private final UserRepository userRepository;
     private final UserAuthRepository userAuthRepository;
     private final UserOauthProfileRepository userOauthProfileRepository;
+    private final LoginAuditRepository loginAuditRepository;
     private final TokenService tokenService;
+    private final StringRedisTemplate redisTemplate;
     private final Clock clock;
-
-    private final Map<String, Instant> stateStore = new ConcurrentHashMap<>();
 
     public LinuxDoAuthorizeResponse authorize(String redirectUri) {
         AuthProperties.LinuxDoProperties props = authProperties.getLinuxdo();
         validateConfigured(props);
         String state = RandomUtil.randomHex(8);
-        stateStore.put(state, clock.instant().plus(props.getStateTtlMinutes(), ChronoUnit.MINUTES));
+        String key = STATE_KEY_PREFIX + state;
+        redisTemplate.opsForValue().set(key, "1", Duration.ofMinutes(props.getStateTtlMinutes()));
         String callback = StringUtils.hasText(redirectUri) ? redirectUri : props.getRedirectBaseUrl();
         String authorizeUrl = UriComponentsBuilder.fromUriString(props.getAuthorizeUrl())
                 .queryParam("response_type", "code")
@@ -94,7 +96,22 @@ public class LinuxDoOauthService {
             user = updateUserAndAuth(existingProfile, nickname, avatar, email, linuxDoToken);
         }
 
+        // 记录 OAuth 登录审计
+        recordOAuthLogin(user, oauthUserId);
+
         return tokenService.issueTokenPair(user);
+    }
+
+    private void recordOAuthLogin(UserEntity user, String oauthUserId) {
+        LoginAuditEntity audit = LoginAuditEntity.builder()
+                .user(user)
+                .identityType(IdentityType.LINUX_DO)
+                .identifier(oauthUserId)
+                .ip("")  // OAuth 回调无法获取真实 IP
+                .userAgent("LinuxDo OAuth")
+                .status(LoginStatus.SUCCESS)
+                .build();
+        loginAuditRepository.save(audit);
     }
 
     @Transactional(rollbackFor = {Exception.class, Error.class})
@@ -244,8 +261,9 @@ public class LinuxDoOauthService {
     }
 
     private void validateState(String state) {
-        Instant expireAt = stateStore.remove(state);
-        if (expireAt == null || expireAt.isBefore(clock.instant())) {
+        String key = STATE_KEY_PREFIX + state;
+        Boolean removed = redisTemplate.delete(key);
+        if (removed == null || !removed) {
             throw new BizException(BizErrorCode.INVALID_PARAMETER);
         }
     }

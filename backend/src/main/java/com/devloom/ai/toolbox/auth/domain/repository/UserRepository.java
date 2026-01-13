@@ -8,4 +8,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface UserRepository extends JpaRepository<UserEntity, Long> {
 
     Optional<UserEntity> findByIdAndStatusNot(Long id, UserStatus status);
+
+    boolean existsByNickname(String nickname);
 }

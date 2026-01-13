@@ -55,6 +55,14 @@ public class VerificationCodeEntity {
     /** 是否已使用。 */
     private boolean used;
 
+    /** 验证失败次数，超过阈值则锁定。 */
+    @Column(name = "failed_attempts")
+    private int failedAttempts;
+
+    /** 锁定时间，达到最大失败次数后锁定。 */
+    @Column(name = "locked_at")
+    private Instant lockedAt;
+
     /** 创建时间。 */
     @Column(name = "created_at", insertable = false, updatable = false)
     private Instant createdAt;

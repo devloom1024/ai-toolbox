@@ -99,13 +99,13 @@ class AkshareMapper:
     @staticmethod
     def map_search_results(df: pd.DataFrame) -> list[dict[str, Any]]:
         """
-        映射股票搜索结果
+        映射股票搜索结果 - 仅返回 symbol 和 name
 
         Args:
             df: akshare 返回的搜索结果 DataFrame
 
         Returns:
-            标准化的搜索结果列表
+            标准化的搜索结果列表 (仅包含 symbol 和 name)
         """
         if df is None or df.empty:
             return []
@@ -113,16 +113,12 @@ class AkshareMapper:
         column_mapping = {
             "代码": "symbol",
             "名称": "name",
-            "最新价": "price",
-            "涨跌幅": "change_pct",
-            "市盈率": "pe_ratio",
-            "市值": "market_cap",
         }
 
         df_renamed = df.rename(columns=column_mapping)
 
-        # 只保留需要的字段
-        required_fields = ["symbol", "name", "price", "change_pct"]
+        # 只保留 symbol 和 name 字段
+        required_fields = ["symbol", "name"]
         available_fields = [f for f in required_fields if f in df_renamed.columns]
 
         return AkshareMapper.dataframe_to_dict(df_renamed[available_fields])

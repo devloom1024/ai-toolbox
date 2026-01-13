@@ -22,6 +22,8 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class VerificationCodeService {
 
+    private static final int MAX_FAILED_ATTEMPTS = 5;
+
     private final VerificationCodeRepository verificationCodeRepository;
     private final MailClient mailClient;
     private final AuthProperties authProperties;
@@ -46,6 +48,7 @@ public class VerificationCodeService {
                 .code(code)
                 .expireAt(now.plus(props.getExpireMinutes(), ChronoUnit.MINUTES))
                 .used(false)
+                .failedAttempts(0)
                 .build();
         verificationCodeRepository.save(entity);
         mailClient.sendVerificationCode(email, code, request.getScene());
@@ -59,10 +62,27 @@ public class VerificationCodeService {
                         normalizedEmail, VerificationChannel.EMAIL, scene)
                 .orElseThrow(() -> new BizException(BizErrorCode.OTP_INVALID));
         Instant now = clock.instant();
+
+        // 检查是否已被锁定
+        if (verification.getLockedAt() != null) {
+            if (verification.getLockedAt().isAfter(now.minus(15, ChronoUnit.MINUTES))) {
+                throw new BizException(BizErrorCode.OTP_LOCKED);
+            }
+            // 锁定超时，重置失败次数
+            verification.setLockedAt(null);
+            verification.setFailedAttempts(0);
+        }
+
         if (verification.getExpireAt().isBefore(now)) {
             throw new BizException(BizErrorCode.OTP_EXPIRED);
         }
         if (!verification.getCode().equals(code)) {
+            int failedAttempts = verification.getFailedAttempts() + 1;
+            verification.setFailedAttempts(failedAttempts);
+            if (failedAttempts >= MAX_FAILED_ATTEMPTS) {
+                verification.setLockedAt(now);
+            }
+            verificationCodeRepository.save(verification);
             throw new BizException(BizErrorCode.OTP_INVALID);
         }
         verification.setUsed(true);

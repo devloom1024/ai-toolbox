@@ -1,5 +1,6 @@
 package com.devloom.ai.toolbox.investment.infra.cache;
 
+import com.devloom.ai.toolbox.investment.config.CacheConfig;
 import com.devloom.ai.toolbox.investment.config.MarketDataProperties;
 import com.devloom.ai.toolbox.investment.domain.enums.KLinePeriod;
 import com.devloom.ai.toolbox.investment.domain.enums.MarketType;

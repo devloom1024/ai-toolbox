@@ -20,8 +20,6 @@ import org.springframework.web.bind.annotation.*;
 
 /**
  * 认证相关接口控制器
- *
- * @author DevLoom Team
  */
 @RestController
 @RequestMapping("/api/v1/auth")
