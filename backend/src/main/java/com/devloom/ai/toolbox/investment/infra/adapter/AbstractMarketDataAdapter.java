@@ -3,7 +3,7 @@ package com.devloom.ai.toolbox.investment.infra.adapter;
 import com.devloom.ai.toolbox.investment.domain.enums.MarketType;
 import com.devloom.ai.toolbox.investment.domain.model.CapitalFlowData;
 import com.devloom.ai.toolbox.investment.domain.model.QuoteData;
-import com.devloom.ai.toolbox.investment.domain.model.StockSearchResult;
+import com.devloom.ai.toolbox.investment.domain.model.StockSearchData;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
@@ -146,7 +146,7 @@ public abstract class AbstractMarketDataAdapter implements MarketDataAdapter {
     }
 
     @Override
-    public List<StockSearchResult> search(String keyword, MarketType market, int limit) {
+    public List<StockSearchData> search(String keyword, MarketType market, int limit) {
         // 默认实现: 不支持搜索功能
         log.warn("Adapter {} does not support search functionality", getName());
         return Collections.emptyList();

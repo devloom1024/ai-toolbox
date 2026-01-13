@@ -74,7 +74,7 @@ public class MarketDataCacheManager {
     /**
      * 构建Caffeine缓存
      */
-    private <T> Cache<String, T> buildCaffeineCache(MarketDataProperties.CacheSettings.CacheConfig config) {
+    private <T> Cache<String, T> buildCaffeineCache(CacheConfig config) {
         Caffeine<Object, Object> builder = Caffeine.newBuilder()
             .maximumSize(config.getMaxSize())
             .expireAfterWrite(config.getExpireAfterWriteSeconds(), TimeUnit.SECONDS)

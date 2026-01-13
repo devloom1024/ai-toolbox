@@ -6,7 +6,7 @@ import com.devloom.ai.toolbox.investment.domain.model.CapitalFlowData;
 import com.devloom.ai.toolbox.investment.domain.model.FundamentalData;
 import com.devloom.ai.toolbox.investment.domain.model.KLineData;
 import com.devloom.ai.toolbox.investment.domain.model.QuoteData;
-import com.devloom.ai.toolbox.investment.domain.model.StockSearchResult;
+import com.devloom.ai.toolbox.investment.domain.model.StockSearchData;
 
 import java.util.List;
 
@@ -119,5 +119,5 @@ public interface MarketDataAdapter {
      * @param limit   返回结果数量限制
      * @return 搜索结果列表 (按匹配度排序)
      */
-    List<StockSearchResult> search(String keyword, MarketType market, int limit);
+    List<StockSearchData> search(String keyword, MarketType market, int limit);
 }

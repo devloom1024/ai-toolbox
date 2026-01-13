@@ -7,7 +7,7 @@ import com.devloom.ai.toolbox.investment.domain.entity.WatchlistEntity;
 import com.devloom.ai.toolbox.investment.domain.entity.WatchlistGroupEntity;
 import com.devloom.ai.toolbox.investment.domain.enums.Market;
 import com.devloom.ai.toolbox.investment.domain.enums.MarketType;
-import com.devloom.ai.toolbox.investment.domain.model.StockSearchResult;
+import com.devloom.ai.toolbox.investment.domain.model.StockSearchData;
 import com.devloom.ai.toolbox.investment.domain.repository.WatchlistGroupRepository;
 import com.devloom.ai.toolbox.investment.domain.repository.WatchlistRepository;
 import com.devloom.ai.toolbox.investment.dto.request.WatchlistAddRequest;
@@ -204,7 +204,7 @@ public class WatchlistService {
      * @param market  市场类型
      * @return 搜索结果列表
      */
-    public List<StockSearchResult> searchStock(String keyword, Market market) {
+    public List<StockSearchData> searchStock(String keyword, Market market) {
         Long userId = CurrentUserHolder.getUserId();
         log.debug("用户 {} 搜索股票，keyword={}, market={}", userId, keyword, market);
 
@@ -214,7 +214,7 @@ public class WatchlistService {
         // 通过数据源路由器获取适配器并搜索
         try {
             MarketDataAdapter adapter = dataSourceRouter.selectAdapter(marketType);
-            List<StockSearchResult> results = adapter.search(keyword, marketType, 20);
+            List<StockSearchData> results = adapter.search(keyword, marketType, 20);
             log.debug("搜索到 {} 条结果", results.size());
             return results;
         } catch (Exception e) {

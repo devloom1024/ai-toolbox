@@ -147,7 +147,7 @@ public class AkshareDataSource extends AbstractMarketDataAdapter {
     }
 
     @Override
-    public List<StockSearchResult> search(String keyword, MarketType market, int limit) {
+    public List<StockSearchData> search(String keyword, MarketType market, int limit) {
         validateSearchParameters(keyword);
 
         // 如果指定了市场但不支持,返回空
@@ -157,7 +157,7 @@ public class AkshareDataSource extends AbstractMarketDataAdapter {
         }
 
         try {
-            List<StockSearchResult> results = client.search(keyword, market, limit);
+            List<StockSearchData> results = client.search(keyword, market, limit);
             healthChecker.recordSuccess(getName());
             return results;
         } catch (Exception e) {

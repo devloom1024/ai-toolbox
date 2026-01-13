@@ -2,6 +2,7 @@ package com.devloom.ai.toolbox.investment.api;
 
 import com.devloom.ai.toolbox.common.response.ApiResponse;
 import com.devloom.ai.toolbox.investment.domain.enums.Market;
+import com.devloom.ai.toolbox.investment.domain.model.StockSearchData;
 import com.devloom.ai.toolbox.investment.dto.request.WatchlistAddRequest;
 import com.devloom.ai.toolbox.investment.dto.request.WatchlistGroupCreateRequest;
 import com.devloom.ai.toolbox.investment.dto.response.StockSearchResult;
@@ -120,7 +121,15 @@ public class WatchlistController {
             @RequestParam String keyword,
             @RequestParam(required = false) Market market) {
         log.debug("搜索股票，keyword={}, market={}", keyword, market);
-        List<StockSearchResult> results = watchlistService.searchStock(keyword, market);
+        List<StockSearchData> domainResults =
+            watchlistService.searchStock(keyword, market);
+        List<StockSearchResult> results = domainResults.stream()
+            .map(domain -> StockSearchResult.builder()
+                .symbol(domain.getSymbol())
+                .name(domain.getName())
+                .market(market)
+                .build())
+            .toList();
         return ApiResponse.success(results);
     }
 }

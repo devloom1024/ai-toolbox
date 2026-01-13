@@ -4,7 +4,7 @@ import com.devloom.ai.toolbox.investment.domain.model.CapitalFlowData;
 import com.devloom.ai.toolbox.investment.domain.model.FundamentalData;
 import com.devloom.ai.toolbox.investment.domain.model.KLineData;
 import com.devloom.ai.toolbox.investment.domain.model.QuoteData;
-import com.devloom.ai.toolbox.investment.domain.model.StockSearchResult;
+import com.devloom.ai.toolbox.investment.domain.model.StockSearchData;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -211,7 +211,7 @@ public class AkshareClient {
      * @return 搜索结果列表
      */
     @SuppressWarnings("unchecked")
-    public List<StockSearchResult> search(String keyword, com.devloom.ai.toolbox.investment.domain.enums.MarketType market, int limit) {
+    public List<StockSearchData> search(String keyword, com.devloom.ai.toolbox.investment.domain.enums.MarketType market, int limit) {
         try {
             // URL编码关键字
             String encodedKeyword = URLEncoder.encode(keyword, StandardCharsets.UTF_8);
@@ -233,9 +233,9 @@ public class AkshareClient {
                 Object data = response.getBody().get("data");
                 if (data instanceof List) {
                     List<Map<String, Object>> list = (List<Map<String, Object>>) data;
-                    List<StockSearchResult> results = new ArrayList<>();
+                    List<StockSearchData> results = new ArrayList<>();
                     for (Map<String, Object> item : list) {
-                        StockSearchResult result = mapToSearchResult(item);
+                        StockSearchData result = mapToSearchResult(item);
                         if (result != null) {
                             results.add(result);
                         }
@@ -253,7 +253,7 @@ public class AkshareClient {
     /**
      * 映射响应到搜索结果
      */
-    private StockSearchResult mapToSearchResult(Map<String, Object> response) {
+    private StockSearchData mapToSearchResult(Map<String, Object> response) {
         if (response == null) {
             return null;
         }
@@ -266,7 +266,7 @@ public class AkshareClient {
                 return null;
             }
 
-            return StockSearchResult.builder()
+            return StockSearchData.builder()
                 .symbol(symbol)
                 .name(name)
                 .build();

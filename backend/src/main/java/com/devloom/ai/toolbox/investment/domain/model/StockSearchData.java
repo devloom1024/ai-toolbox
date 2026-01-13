@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class StockSearchResult {
+public class StockSearchData {
 
     /**
      * 股票代码
@@ -27,8 +27,8 @@ public class StockSearchResult {
     /**
      * 创建搜索结果 (工厂方法)
      */
-    public static StockSearchResult of(String symbol, String name) {
-        return StockSearchResult.builder()
+    public static StockSearchData of(String symbol, String name) {
+        return StockSearchData.builder()
             .symbol(symbol)
             .name(name)
             .build();
