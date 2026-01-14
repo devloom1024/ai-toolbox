@@ -46,14 +46,14 @@ pnpm build                # 构建静态导出
 - **前端**: [frontend/CLAUDE.md](./frontend/CLAUDE.md) - Next.js 架构、API 调用、国际化、组件开发
 - **Python 网关**: [python-services/CLAUDE.md](./python-services/CLAUDE.md) - FastAPI 网关、模块化架构、数据源集成
 
-### 项目文档 (docs/)
+### 项目文档 (.claude/reference/)
 
-**技术规范和设计文档**:
-- **[docs/specs/](./docs/specs/)** - 技术规范
-  - [openapi.md](./docs/specs/openapi.md) - OpenAPI Schema 命名规范 (DTO 命名约定)
-  - [api.md](./docs/specs/api.md) - API 接口规范
-  - [postgresql.md](./docs/specs/postgresql.md) - PostgreSQL 数据库规范
-  - [redis.md](./docs/specs/redis.md) - Redis 缓存规范
+**技术规范和最佳实践**:
+- **[.claude/reference/](./.claude/reference/)** - AI 开发参考规范
+  - [openapi-best-practices.md](./.claude/reference/openapi-best-practices.md) - OpenAPI Schema 命名规范 (DTO 命名约定)
+  - [api-best-practices.md](./.claude/reference/api-best-practices.md) - API 接口规范
+  - [postgresql-best-practices.md](./.claude/reference/postgresql-best-practices.md) - PostgreSQL 数据库规范
+  - [redis-best-practices.md](./.claude/reference/redis-best-practices.md) - Redis 缓存规范
 - **[docs/design/](./docs/design/)** - 设计文档
   - [auth/](./docs/design/auth/) - 认证模块设计 (OAuth 流程、数据库设计等)
 
@@ -110,7 +110,7 @@ LinuxDo OAuth 采用**前端主导重定向**模式:
 
 ## API 规范
 
-参考 `docs/specs/openapi.md`:
+参考 `.claude/reference/openapi-best-practices.md`:
 - DTO 命名: 请求 `*Request`, 响应 `*Response`
 - 所有接口返回 `ApiResponse<T>` 包装
 - 与 OpenAPI Schema 保持严格一致

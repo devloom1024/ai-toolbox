@@ -245,7 +245,7 @@ LinuxDo 回调到前端 → 前端调用 /api/v1/auth/oauth/linuxdo/callback
 3. 在 `{domain}/service/` 中实现业务逻辑
 4. 在 `{domain}/api/` 中添加 Controller 方法，返回 `ApiResponse<T>`
 5. 添加 Jakarta Validation 注解 (`@NotBlank`, `@Email` 等)
-6. 在 `docs/specs/openapi.md` 中更新 API 文档
+6. 在 `.claude/reference/openapi-best-practices.md` 中更新 API 文档
 
 ### 处理业务异常
 
@@ -309,7 +309,7 @@ LinuxDo 回调到前端 → 前端调用 /api/v1/auth/oauth/linuxdo/callback
 
 ### DTO 层
 
-1. **命名规范** (与 `docs/specs/openapi.md` 保持一致):
+1. **命名规范** (与 `.claude/reference/openapi-best-practices.md` 保持一致):
    - 请求 DTO: `*Request` (如 `LoginRequest`)
    - 响应 DTO: `*Response` (如 `TokenResponse`)
 2. **字段注释**: 所有字段必须有 Javadoc 注释
