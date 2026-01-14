@@ -1,0 +1,1546 @@
+openapi: 3.0.3
+info:
+  title: Investment Service API
+  version: 1.0.0
+  description: >
+    投资模块接口定义，包括标的搜索、自选管理、标的详情查询。
+    响应结构遵循 docs/specs/api.md，所有接口返回 {code,message,data} 的 JSON 格式。
+    支持市场：A股、港股、美股、ETF、基金。
+servers:
+  - url: https://api.example.com
+    description: Production
+  - url: https://staging-api.example.com
+    description: Staging
+tags:
+  - name: Search
+    description: 标的搜索接口
+  - name: Watchlist
+    description: 自选股管理接口
+  - name: Security
+    description: 标的详情查询接口
+paths:
+  # ==================== 标的搜索接口 ====================
+  /api/v1/investment/search:
+    get:
+      tags: [Search]
+      summary: 搜索标的
+      description: 根据关键词搜索 A股、港股、美股、ETF、基金，支持按名称或代码搜索
+      parameters:
+        - name: keyword
+          in: query
+          required: true
+          schema:
+            type: string
+          description: 搜索关键词（股票代码或名称）
+          example: "茅台"
+        - name: market
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [A_SHARE, HK, US, ETF, FUND, ALL]
+            default: ALL
+          description: |
+            市场类型：
+            - A_SHARE: A股
+            - HK: 港股
+            - US: 美股
+            - ETF: ETF
+            - FUND: 基金
+            - ALL: 全部市场
+          example: "A_SHARE"
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+            maximum: 100
+          description: 返回结果数量限制
+          example: 20
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+            minimum: 0
+          description: 分页偏移量
+          example: 0
+      responses:
+        "200":
+          description: 搜索成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseSearchResult"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+
+  # ==================== 自选管理接口 ====================
+  /api/v1/investment/watchlist:
+    get:
+      tags: [Watchlist]
+      summary: 获取自选列表
+      description: 获取当前用户的自选股列表，支持按分组和市场过滤
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: groupId
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int64
+          description: 分组 ID，不传则返回所有分组
+        - name: market
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [A_SHARE, HK, US, ETF, FUND, ALL]
+            default: ALL
+          description: 过滤市场类型
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+            minimum: 1
+          description: 页码
+          example: 1
+        - name: size
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+            maximum: 100
+          description: 每页数量
+          example: 20
+      responses:
+        "200":
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseWatchlist"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+    post:
+      tags: [Watchlist]
+      summary: 添加自选
+      description: 将标的添加到自选列表，默认添加到默认分组
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddWatchlistRequest"
+      responses:
+        "201":
+          description: 添加成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseWatchlistItem"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "409":
+          description: 标的已在自选列表中
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseError"
+
+  /api/v1/investment/watchlist/{id}:
+    delete:
+      tags: [Watchlist]
+      summary: 移除自选
+      description: 从自选列表中移除指定标的
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: 自选记录 ID
+      responses:
+        "200":
+          description: 移除成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          description: 自选记录不存在
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseError"
+
+    put:
+      tags: [Watchlist]
+      summary: 更新自选信息
+      description: 更新自选标的的备注或移动到其他分组
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: 自选记录 ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateWatchlistRequest"
+      responses:
+        "200":
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseWatchlistItem"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          description: 自选记录不存在
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseError"
+
+  /api/v1/investment/watchlist/check:
+    get:
+      tags: [Watchlist]
+      summary: 检查是否已添加自选
+      description: 检查指定标的是否已在自选列表中
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: symbol
+          in: query
+          required: true
+          schema:
+            type: string
+          description: 标的代码（纯数字或字母）
+          example: "600519"
+        - name: market
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [A_SHARE, HK, US, ETF, FUND]
+          description: 市场类型
+      responses:
+        "200":
+          description: 查询成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseWatchlistCheck"
+
+  # ==================== 自选分组接口 ====================
+  /api/v1/investment/watchlist/groups:
+    get:
+      tags: [Watchlist]
+      summary: 获取分组列表
+      description: 获取当前用户的所有自选分组及每个分组的标的数量
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseWatchlistGroups"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+    post:
+      tags: [Watchlist]
+      summary: 创建分组
+      description: 创建一个新的自选分组
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateGroupRequest"
+      responses:
+        "201":
+          description: 创建成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseWatchlistGroup"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /api/v1/investment/watchlist/groups/{id}:
+    put:
+      tags: [Watchlist]
+      summary: 更新分组
+      description: 重命名自选分组
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: 分组 ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateGroupRequest"
+      responses:
+        "200":
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseWatchlistGroup"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          description: 分组不存在
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseError"
+
+    delete:
+      tags: [Watchlist]
+      summary: 删除分组
+      description: 删除自选分组，组内标的将移至默认分组
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: 分组 ID
+      responses:
+        "200":
+          description: 删除成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          description: 分组不存在
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseError"
+
+  # ==================== 标的详情接口 ====================
+  /api/v1/investment/security/{symbol}:
+    get:
+      tags: [Security]
+      summary: 获取标的详情
+      description: |
+        获取标的的详细信息，包括实时行情、基本面数据等。
+        不同市场支持的可用数据类型不同，响应中会返回 availableDataTypes 列表。
+      parameters:
+        - name: symbol
+          in: path
+          required: true
+          schema:
+            type: string
+          description: 标的代码（纯数字或字母）
+          example: "600519"
+        - name: market
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [A_SHARE, HK, US, ETF, FUND]
+          description: 市场类型
+          example: "A_SHARE"
+      responses:
+        "200":
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseSecurityDetail"
+        "404":
+          description: 标的不存在
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseError"
+
+  /api/v1/investment/security/{symbol}/quote:
+    get:
+      tags: [Security]
+      summary: 获取实时行情
+      description: 获取标的的实时行情数据
+      parameters:
+        - name: symbol
+          in: path
+          required: true
+          schema:
+            type: string
+          description: 标的代码（纯数字或字母）
+          example: "600519"
+        - name: market
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [A_SHARE, HK, US, ETF, FUND]
+          description: 市场类型
+      responses:
+        "200":
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseQuote"
+
+  /api/v1/investment/security/{symbol}/kline:
+    get:
+      tags: [Security]
+      summary: 获取 K 线数据
+      description: 获取标的的历史 K 线数据
+      parameters:
+        - name: symbol
+          in: path
+          required: true
+          schema:
+            type: string
+          description: 标的代码（纯数字或字母）
+          example: "600519"
+        - name: market
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [A_SHARE, HK, US, ETF, FUND]
+          description: 市场类型
+        - name: period
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [D, W, M, 5, 15, 30, 60]
+            default: D
+          description: |
+            K 线周期：
+            - D: 日K
+            - W: 周K
+            - M: 月K
+            - 5: 5分钟
+            - 15: 15分钟
+            - 30: 30分钟
+            - 60: 60分钟
+        - name: startDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+          description: 开始日期
+        - name: endDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+          description: 结束日期
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 500
+            maximum: 5000
+          description: 返回数据条数限制
+      responses:
+        "200":
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseKLine"
+
+  /api/v1/investment/security/{symbol}/fundamental:
+    get:
+      tags: [Security]
+      summary: 获取基本面数据
+      description: 获取标的的基本面数据（市盈率、市净率、股息率等，仅 A_SHARE 支持）
+      parameters:
+        - name: symbol
+          in: path
+          required: true
+          schema:
+            type: string
+          description: 标的代码（纯数字或字母）
+          example: "600519"
+        - name: market
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [A_SHARE]
+          description: 市场类型（仅支持 A_SHARE）
+      responses:
+        "200":
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseFundamental"
+        "400":
+          description: 不支持的市场类型
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseError"
+
+  /api/v1/investment/security/{symbol}/financial:
+    get:
+      tags: [Security]
+      summary: 获取财务指标
+      description: 获取标的的财务指标数据（净利润、营收、ROE等，仅 A_SHARE 支持）
+      parameters:
+        - name: symbol
+          in: path
+          required: true
+          schema:
+            type: string
+          description: 标的代码（纯数字或字母）
+          example: "600519"
+        - name: market
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [A_SHARE]
+          description: 市场类型（仅支持 A_SHARE）
+      responses:
+        "200":
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseFinancial"
+        "400":
+          description: 不支持的市场类型
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseError"
+
+  /api/v1/investment/security/{symbol}/capital-flow:
+    get:
+      tags: [Security]
+      summary: 获取资金流向
+      description: 获取标的的资金流向数据（仅 A_SHARE 支持）
+      parameters:
+        - name: symbol
+          in: path
+          required: true
+          schema:
+            type: string
+          description: 标的代码（纯数字或字母）
+          example: "600519"
+        - name: market
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [A_SHARE]
+          description: 市场类型（仅支持 A_SHARE）
+      responses:
+        "200":
+          description: 获取成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseCapitalFlow"
+        "400":
+          description: 不支持的市场类型
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseError"
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  responses:
+    BadRequest:
+      description: 参数错误或请求非法
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApiResponseError"
+    Unauthorized:
+      description: 未认证或 Token 已失效
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApiResponseError"
+  schemas:
+    # ==================== 通用响应 ====================
+    ApiResponse:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: integer
+          example: 0
+        message:
+          type: string
+          example: ok
+        data:
+          nullable: true
+        traceId:
+          type: string
+          nullable: true
+          description: 请求链路追踪 ID
+
+    ApiResponseError:
+      allOf:
+        - $ref: "#/components/schemas/ApiResponse"
+      example:
+        code: 40001
+        message: security not found
+        data: null
+
+    # ==================== 错误码 ====================
+    InvestmentErrorCodes:
+      type: object
+      description: 投资模块错误码定义
+      properties:
+        code:
+          type: integer
+        name:
+          type: string
+        message:
+          type: string
+      example:
+        - code: 40001
+          name: SECURITY_NOT_FOUND
+          message: 标的不存在
+        - code: 40002
+          name: MARKET_NOT_SUPPORTED
+          message: 不支持的市场类型
+        - code: 40003
+          name: WATCHLIST_EXISTS
+          message: 标的已在自选列表中
+        - code: 40004
+          name: WATCHLIST_NOT_FOUND
+          message: 自选记录不存在
+        - code: 40005
+          name: INVALID_SYMBOL_FORMAT
+          message: 标的代码格式无效
+        - code: 40006
+          name: DATA_SOURCE_ERROR
+          message: 数据源获取失败
+
+    # ==================== 搜索相关 ====================
+    ApiResponseSearchResult:
+      allOf:
+        - $ref: "#/components/schemas/ApiResponse"
+        - type: object
+          properties:
+            data:
+              $ref: "#/components/schemas/SearchResult"
+    SearchResult:
+      type: object
+      properties:
+        securities:
+          type: array
+          items:
+            $ref: "#/components/schemas/SecuritySearchItem"
+          description: 搜索结果列表
+        total:
+          type: integer
+          format: int64
+          description: 搜索结果总数
+        limit:
+          type: integer
+          description: 当前限制数量
+        offset:
+          type: integer
+          description: 当前偏移量
+
+    SecuritySearchItem:
+      type: object
+      description: 搜索结果项
+      properties:
+        symbol:
+          type: string
+          description: 标的代码（不带前缀，纯数字或字母）
+          example: "600519"
+        name:
+          type: string
+          description: 标的名称
+          example: "贵州茅台"
+        market:
+          type: string
+          enum: [A_SHARE, HK, US, ETF, FUND]
+          description: 市场类型
+        type:
+          type: string
+          enum: [STOCK, ETF, FUND]
+          description: 标的类型
+
+    # ==================== 自选相关 ====================
+    ApiResponseWatchlist:
+      allOf:
+        - $ref: "#/components/schemas/ApiResponse"
+        - type: object
+          properties:
+            data:
+              $ref: "#/components/schemas/WatchlistData"
+    WatchlistData:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/WatchlistItem"
+          description: 自选列表
+        total:
+          type: integer
+          format: int64
+          description: 总数量
+        page:
+          type: integer
+          description: 当前页码
+        size:
+          type: integer
+          description: 每页数量
+
+    WatchlistItem:
+      type: object
+      description: 自选项
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: 自选记录 ID
+        groupId:
+          type: integer
+          format: int64
+          description: 所属分组 ID
+        symbol:
+          type: string
+          description: 标的代码
+        name:
+          type: string
+          description: 标的名称
+        market:
+          type: string
+          enum: [A_SHARE, HK, US, ETF, FUND]
+          description: 市场类型
+        type:
+          type: string
+          enum: [STOCK, ETF, FUND]
+          description: 标的类型
+        note:
+          type: string
+          nullable: true
+          description: 备注
+        currentPrice:
+          type: number
+          format: double
+          nullable: true
+          description: 当前价
+        changePercent:
+          type: number
+          format: double
+          nullable: true
+          description: 涨跌幅（%）
+        addedAt:
+          type: string
+          format: date-time
+          description: 添加时间
+
+    ApiResponseWatchlistItem:
+      allOf:
+        - $ref: "#/components/schemas/ApiResponse"
+        - type: object
+          properties:
+            data:
+              $ref: "#/components/schemas/WatchlistItem"
+
+    AddWatchlistRequest:
+      type: object
+      required: [symbol, market]
+      properties:
+        symbol:
+          type: string
+          description: 标的代码（纯数字或字母）
+          example: "600519"
+        market:
+          type: string
+          enum: [A_SHARE, HK, US, ETF, FUND]
+          description: 市场类型
+        groupId:
+          type: integer
+          format: int64
+          nullable: true
+          description: 分组 ID，不传则添加到默认分组
+        note:
+          type: string
+          maxLength: 200
+          nullable: true
+          description: 备注（可选）
+
+    UpdateWatchlistRequest:
+      type: object
+      properties:
+        groupId:
+          type: integer
+          format: int64
+          nullable: true
+          description: 目标分组 ID，移动标的到其他分组
+        note:
+          type: string
+          maxLength: 200
+          nullable: true
+          description: 备注
+
+    ApiResponseWatchlistCheck:
+      allOf:
+        - $ref: "#/components/schemas/ApiResponse"
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                inWatchlist:
+                  type: boolean
+                  description: 是否已在自选列表中
+                watchlistId:
+                  type: integer
+                  format: int64
+                  nullable: true
+                  description: 自选记录 ID（如果存在）
+                groupId:
+                  type: integer
+                  format: int64
+                  nullable: true
+                  description: 所在分组 ID（如果存在）
+
+    # ==================== 分组相关 ====================
+    ApiResponseWatchlistGroups:
+      allOf:
+        - $ref: "#/components/schemas/ApiResponse"
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: "#/components/schemas/WatchlistGroup"
+              description: 分组列表
+
+    ApiResponseWatchlistGroup:
+      allOf:
+        - $ref: "#/components/schemas/ApiResponse"
+        - type: object
+          properties:
+            data:
+              $ref: "#/components/schemas/WatchlistGroup"
+
+    WatchlistGroup:
+      type: object
+      description: 自选分组
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: 分组 ID
+        name:
+          type: string
+          description: 分组名称
+        isDefault:
+          type: boolean
+          description: 是否为默认分组
+        securityCount:
+          type: integer
+          description: 分组内标的数量
+        sortOrder:
+          type: integer
+          description: 排序权重（数值越小越靠前）
+        createdAt:
+          type: string
+          format: date-time
+          description: 创建时间
+        updatedAt:
+          type: string
+          format: date-time
+          description: 更新时间
+
+    CreateGroupRequest:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 50
+          description: 分组名称
+          example: "我的自选"
+        sortOrder:
+          type: integer
+          default: 0
+          description: 排序权重（可选）
+
+    UpdateGroupRequest:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 50
+          description: 分组新名称
+          example: "新分组名称"
+
+    # ==================== 标的详情 ====================
+    ApiResponseSecurityDetail:
+      allOf:
+        - $ref: "#/components/schemas/ApiResponse"
+        - type: object
+          properties:
+            data:
+              $ref: "#/components/schemas/SecurityDetail"
+    SecurityDetail:
+      type: object
+      description: |
+        标的详情，不同市场支持的可用数据类型不同
+        - A_SHARE: KLINE, FUNDAMENTAL, FINANCIAL, CAPITAL_FLOW
+        - HK: KLINE
+        - US: KLINE
+        - ETF: KLINE, NET_VALUE, DIVIDEND
+        - FUND: KLINE, NET_VALUE, HOLDINGS
+      properties:
+        basicInfo:
+          $ref: "#/components/schemas/SecurityBasicInfo"
+        quote:
+          $ref: "#/components/schemas/QuoteData"
+        kline:
+          $ref: "#/components/schemas/KLineData"
+          description: K线数据（部分市场支持）
+        fundamental:
+          $ref: "#/components/schemas/FundamentalData"
+          description: 基本面数据（仅 A_SHARE 支持）
+        financialSummary:
+          $ref: "#/components/schemas/FinancialSummary"
+          description: 财务摘要（仅 A_SHARE 支持）
+        capitalFlow:
+          $ref: "#/components/schemas/CapitalFlowData"
+          description: 资金流向（仅 A_SHARE 支持）
+        netValue:
+          $ref: "#/components/schemas/NetValueData"
+          description: 净值数据（仅 ETF 和 FUND 支持）
+        holdings:
+          $ref: "#/components/schemas/HoldingsData"
+          description: 持仓数据（仅 FUND 支持）
+        dividend:
+          $ref: "#/components/schemas/DividendData"
+          description: 分红数据（仅 ETF 支持）
+        availableDataTypes:
+          type: array
+          items:
+            type: string
+            enum: [KLINE, FUNDAMENTAL, FINANCIAL, CAPITAL_FLOW, NET_VALUE, HOLDINGS, DIVIDEND]
+          description: 当前标的支持的数据类型列表，前端根据此列表显示对应数据卡片
+        lastUpdated:
+          type: string
+          format: date-time
+
+    SecurityBasicInfo:
+      type: object
+      description: 标的基本信息
+      properties:
+        symbol:
+          type: string
+          description: 标的代码
+        name:
+          type: string
+          description: 标的名称
+        market:
+          type: string
+          enum: [A_SHARE, HK, US, ETF, FUND]
+          description: 市场类型
+        type:
+          type: string
+          enum: [STOCK, ETF, FUND]
+          description: 标的类型
+        exchange:
+          type: string
+          nullable: true
+          description: 交易所
+        listDate:
+          type: string
+          format: date
+          nullable: true
+          description: 上市日期
+        delistDate:
+          type: string
+          format: date
+          nullable: true
+          description: 退市日期
+        fullName:
+          type: string
+          nullable: true
+          description: 公司全称
+        industry:
+          type: string
+          nullable: true
+          description: 所属行业
+        area:
+          type: string
+          nullable: true
+          description: 所属地域
+
+    # ==================== 行情数据 ====================
+    ApiResponseQuote:
+      allOf:
+        - $ref: "#/components/schemas/ApiResponse"
+        - type: object
+          properties:
+            data:
+              $ref: "#/components/schemas/QuoteData"
+    QuoteData:
+      type: object
+      description: 实时行情数据
+      properties:
+        symbol:
+          type: string
+          description: 标的代码
+        name:
+          type: string
+          description: 标的名称
+        currentPrice:
+          type: number
+          format: double
+          description: 当前价
+        openPrice:
+          type: number
+          format: double
+          description: 开盘价
+        highPrice:
+          type: number
+          format: double
+          description: 最高价
+        lowPrice:
+          type: number
+          format: double
+          description: 最低价
+        preClosePrice:
+          type: number
+          format: double
+          description: 昨收价
+        change:
+          type: number
+          format: double
+          description: 涨跌额
+        changePercent:
+          type: number
+          format: double
+          description: 涨跌幅（%）
+        volume:
+          type: integer
+          format: int64
+          description: 成交量（股）
+        turnover:
+          type: number
+          format: double
+          description: 成交额（元）
+        turnoverRate:
+          type: number
+          format: double
+          description: 换手率（%）
+        amplitude:
+          type: number
+          format: double
+          description: 振幅（%）
+        marketCap:
+          type: number
+          format: double
+          nullable: true
+          description: 总市值（元）
+        circulatingMarketCap:
+          type: number
+          format: double
+          nullable: true
+          description: 流通市值（元）
+        peRatio:
+          type: number
+          format: double
+          nullable: true
+          description: 市盈率
+        pbRatio:
+          type: number
+          format: double
+          nullable: true
+          description: 市净率
+        dividendYield:
+          type: number
+          format: double
+          nullable: true
+          description: 股息率（%）
+        lastUpdated:
+          type: string
+          format: date-time
+
+    # ==================== K线数据 ====================
+    ApiResponseKLine:
+      allOf:
+        - $ref: "#/components/schemas/ApiResponse"
+        - type: object
+          properties:
+            data:
+              $ref: "#/components/schemas/KLineData"
+    KLineData:
+      type: object
+      description: K 线数据
+      properties:
+        symbol:
+          type: string
+          description: 标的代码
+        period:
+          type: string
+          description: K 线周期
+        klines:
+          type: array
+          items:
+            $ref: "#/components/schemas/KLineItem"
+          description: K 线数据列表
+
+    KLineItem:
+      type: object
+      description: 单根 K 线
+      properties:
+        datetime:
+          type: string
+          description: 时间戳
+        open:
+          type: number
+          format: double
+          description: 开盘价
+        high:
+          type: number
+          format: double
+          description: 最高价
+        low:
+          type: number
+          format: double
+          description: 最低价
+        close:
+          type: number
+          format: double
+          description: 收盘价
+        volume:
+          type: integer
+          format: int64
+          description: 成交量
+        turnover:
+          type: number
+          format: double
+          description: 成交额
+        changePercent:
+          type: number
+          format: double
+          description: 涨跌幅（%）
+
+    # ==================== 基本面数据 ====================
+    ApiResponseFundamental:
+      allOf:
+        - $ref: "#/components/schemas/ApiResponse"
+        - type: object
+          properties:
+            data:
+              $ref: "#/components/schemas/FundamentalData"
+    FundamentalData:
+      type: object
+      description: 基本面数据
+      properties:
+        symbol:
+          type: string
+        marketCap:
+          type: number
+          format: double
+          description: 总市值（元）
+        circulatingMarketCap:
+          type: number
+          format: double
+          description: 流通市值（元）
+        totalShares:
+          type: number
+          format: double
+          description: 总股本（股）
+        circulatingShares:
+          type: number
+          format: double
+          description: 流通股本（股）
+        peRatio:
+          type: number
+          format: double
+          description: 市盈率
+        peRatioTtm:
+          type: number
+          format: double
+          description: 市盈率 TTM
+        pbRatio:
+          type: number
+          format: double
+          description: 市净率
+        psRatio:
+          type: number
+          format: double
+          description: 市销率
+        pcRatio:
+          type: number
+          format: double
+          description: 市现率
+        dividendYield:
+          type: number
+          format: double
+          description: 股息率（%）
+        bvps:
+          type: number
+          format: double
+          description: 每股净资产
+        eps:
+          type: number
+          format: double
+          description: 每股收益
+        epsYoy:
+          type: number
+          format: double
+          description: 每股收益同比增长率（%）
+        roe:
+          type: number
+          format: double
+          description: 净资产收益率（%）
+        roeDiluted:
+          type: number
+          format: double
+          description: 净资产收益率-摊薄（%）
+        grossMargin:
+          type: number
+          format: double
+          description: 毛利率（%）
+        netMargin:
+          type: number
+          format: double
+          description: 净利率（%）
+        lastUpdated:
+          type: string
+          format: date-time
+
+    # ==================== 财务指标 ====================
+    ApiResponseFinancial:
+      allOf:
+        - $ref: "#/components/schemas/ApiResponse"
+        - type: object
+          properties:
+            data:
+              $ref: "#/components/schemas/FinancialData"
+    FinancialData:
+      type: object
+      description: 财务指标数据
+      properties:
+        symbol:
+          type: string
+        reportDates:
+          type: array
+          items:
+            type: string
+          description: 报告期列表
+        indicators:
+          type: array
+          items:
+            $ref: "#/components/schemas/FinancialIndicator"
+          description: 财务指标列表
+
+    FinancialIndicator:
+      type: object
+      description: 单个财务指标
+      properties:
+        reportDate:
+          type: string
+          description: 报告期
+        revenue:
+          type: number
+          format: double
+          description: 营业收入（元）
+        netProfit:
+          type: number
+          format: double
+          description: 净利润（元）
+        operatingProfit:
+          type: number
+          format: double
+          description: 营业利润（元）
+        totalAssets:
+          type: number
+          format: double
+          description: 总资产（元）
+        totalLiabilities:
+          type: number
+          format: double
+          description: 总负债（元）
+        shareholdersEquity:
+          type: number
+          format: double
+          description: 股东权益（元）
+        roe:
+          type: number
+          format: double
+          description: 净资产收益率（%）
+        grossMargin:
+          type: number
+          format: double
+          description: 毛利率（%）
+        netMargin:
+          type: number
+          format: double
+          description: 净利率（%）
+        basicEps:
+          type: number
+          format: double
+          description: 每股收益-基本
+        dilutedEps:
+          type: number
+          format: double
+          description: 每股收益-摊薄
+
+    FinancialSummary:
+      type: object
+      description: 财务指标摘要
+      properties:
+        revenueYoy:
+          type: number
+          format: double
+          description: 营收同比增长率（%）
+        netProfitYoy:
+          type: number
+          format: double
+          description: 净利润同比增长率（%）
+        latestRevenue:
+          type: number
+          format: double
+          description: 最新营业收入（元）
+        latestNetProfit:
+          type: number
+          format: double
+          description: 最新净利润（元）
+
+    # ==================== 资金流向 ====================
+    ApiResponseCapitalFlow:
+      allOf:
+        - $ref: "#/components/schemas/ApiResponse"
+        - type: object
+          properties:
+            data:
+              $ref: "#/components/schemas/CapitalFlowData"
+    CapitalFlowData:
+      type: object
+      description: 资金流向数据
+      properties:
+        symbol:
+          type: string
+        mainNetInflow:
+          type: number
+          format: double
+          description: 主力净流入（元）
+        mainNetInflowRate:
+          type: number
+          format: double
+          description: 主力净流入占比（%）
+        smallNetInflow:
+          type: number
+          format: double
+          description: 小单净流入（元）
+        mediumNetInflow:
+          type: number
+          format: double
+          description: 中单净流入（元）
+        largeNetInflow:
+          type: number
+          format: double
+          description: 大单净流入（元）
+        superNetInflow:
+          type: number
+          format: double
+          description: 超大单净流入（元）
+        lastUpdated:
+          type: string
+          format: date-time
+
+    # ==================== 净值数据（ETF/基金） ====================
+    NetValueData:
+      type: object
+      description: 净值数据
+      properties:
+        symbol:
+          type: string
+          description: 标的代码
+        unitNetValue:
+          type: number
+          format: double
+          description: 单位净值
+        accumNetValue:
+          type: number
+          format: double
+          description: 累计净值
+        dailyGrowth:
+          type: number
+          format: double
+          description: 日增长率（%）
+        weeklyGrowth:
+          type: number
+          format: double
+          description: 近1周增长率（%）
+        monthlyGrowth:
+          type: number
+          format: double
+          description: 近1月增长率（%）
+        quarterlyGrowth:
+          type: number
+          format: double
+          description: 近3月增长率（%）
+        yearlyGrowth:
+          type: number
+          format: double
+          description: 近1年增长率（%）
+        threeYearGrowth:
+          type: number
+          format: double
+          description: 近3年增长率（%）
+        sinceInceptionGrowth:
+          type: number
+          format: double
+          description: 成立以来增长率（%）
+        updateDate:
+          type: string
+          format: date
+          description: 更新日期
+
+    # ==================== 持仓数据（基金） ====================
+    HoldingsData:
+      type: object
+      description: 基金持仓数据
+      properties:
+        symbol:
+          type: string
+          description: 基金代码
+        reportDate:
+          type: string
+          format: date
+          description: 报告期
+        holdings:
+          type: array
+          items:
+            $ref: "#/components/schemas/HoldingItem"
+          description: 持仓列表
+        positionRate:
+          type: number
+          format: double
+          description: 股票仓位（%）
+
+    HoldingItem:
+      type: object
+      description: 单个持仓
+      properties:
+        symbol:
+          type: string
+          description: 持仓股票代码
+        name:
+          type: string
+          description: 持仓股票名称
+        holdingRatio:
+          type: number
+          format: double
+          description: 持仓占比（%）
+        changeRatio:
+          type: number
+          format: double
+          description: 持仓变动（%）
+
+    # ==================== 分红数据（ETF） ====================
+    DividendData:
+      type: object
+      description: ETF 分红数据
+      properties:
+        symbol:
+          type: string
+          description: ETF 代码
+        dividends:
+          type: array
+          items:
+            $ref: "#/components/schemas/DividendItem"
+          description: 分红记录列表
+
+    DividendItem:
+      type: object
+      description: 单次分红记录
+      properties:
+        dividendDate:
+          type: string
+          format: date
+          description: 分红发放日
+        exDividendDate:
+          type: string
+          format: date
+          description: 除权日
+        dividendPerShare:
+          type: number
+          format: double
+          description: 每股分红（元）
+        bonusShares:
+          type: number
+          format: double
+          description: 每股送股
+        reinvestPrice:
+          type: number
+          format: double
+          description: 再投资价格
+
