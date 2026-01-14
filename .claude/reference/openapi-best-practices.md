@@ -91,7 +91,48 @@ components:
           description: 请求链路追踪 ID，用于问题排查
 ```
 
-#### 3.2 错误响应
+#### 3.2 ApiResponse 中的 data 类型规范
+
+**关键规则**：`ApiResponse<T>` 中的 `data` 字段引用的 Model **必须**以 `Response` 结尾。
+
+**正确示例：**
+```yaml
+ApiResponseSearchResult:
+  allOf:
+    - $ref: '#/components/schemas/ApiResponse'
+    - type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/SearchResultResponse'  # ✅ 以 Response 结尾
+
+SearchResultResponse:  # ✅ 以 Response 结尾
+  type: object
+  properties:
+    securities:
+      type: array
+      items:
+        $ref: '#/components/schemas/SecuritySearchItem'
+```
+
+**错误示例：**
+```yaml
+ApiResponseSearchResult:
+  allOf:
+    - $ref: '#/components/schemas/ApiResponse'
+    - type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/SearchResultResponse'  # ❌ 未以 Response 结尾
+```
+
+**命名规则总结：**
+| Model 类型 | 命名规则 | 示例 |
+|-----------|---------|------|
+| ApiResponse 包装响应 | `ApiResponse` + 业务概念 + `Result`/`Data` | `ApiResponseSearchResult`, `ApiResponseWatchlistData` |
+| 实际数据 Model | **必须以 `Response` 结尾** | `SearchResultResponse`, `WatchlistDataResponse` |
+| 列表项 Model | 不以 `Response` 结尾 | `SecuritySearchItem`, `WatchlistItem` |
+
+#### 3.3 错误响应
 
 所有错误相关的 Model **必须**以 `ApiResponse` 开头，然后添加具体的错误类型描述。
 
@@ -126,7 +167,7 @@ components:
                         type: string
 ```
 
-#### 3.3 成功响应（带数据）
+#### 3.4 成功响应（带数据）
 
 成功响应可以自由命名，但建议使用 `ApiResponse` + 业务概念的格式。
 

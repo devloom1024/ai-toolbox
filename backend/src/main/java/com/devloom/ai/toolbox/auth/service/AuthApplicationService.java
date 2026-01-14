@@ -95,7 +95,13 @@ public class AuthApplicationService {
         if (user == null || user.getStatus() == UserStatus.DELETED) {
             // 记录失败的登录（用户不存在时也记录，便于审计）
             if (auth != null) {
-                recordLogin(auth.getUser(), identityType, identifier, ip, userAgent, LoginStatus.FAILURE);
+                recordLogin(auth.getUser(), LoginAuditContext.builder()
+                        .type(identityType)
+                        .identifier(identifier)
+                        .ip(ip)
+                        .userAgent(userAgent)
+                        .status(LoginStatus.FAILURE)
+                        .build());
             }
             throw new BizException(BizErrorCode.PASSWORD_MISMATCH);
         }
@@ -103,7 +109,13 @@ public class AuthApplicationService {
         // 检查账户是否被临时锁定
         if (user.getLockedAt() != null) {
             if (user.getLockedAt().isAfter(clock.instant().minus(LOCKOUT_DURATION_MINUTES, java.time.temporal.ChronoUnit.MINUTES))) {
-                recordLogin(user, identityType, identifier, ip, userAgent, LoginStatus.FAILURE);
+                recordLogin(user, LoginAuditContext.builder()
+                        .type(identityType)
+                        .identifier(identifier)
+                        .ip(ip)
+                        .userAgent(userAgent)
+                        .status(LoginStatus.FAILURE)
+                        .build());
                 throw new BizException(BizErrorCode.ACCOUNT_LOCKED);
             }
             // 锁定超时，重置失败次数
@@ -120,7 +132,13 @@ public class AuthApplicationService {
                 user.setStatus(UserStatus.LOCKED);
             }
             userRepository.save(user);
-            recordLogin(user, identityType, identifier, ip, userAgent, LoginStatus.FAILURE);
+            recordLogin(user, LoginAuditContext.builder()
+                    .type(identityType)
+                    .identifier(identifier)
+                    .ip(ip)
+                    .userAgent(userAgent)
+                    .status(LoginStatus.FAILURE)
+                    .build());
             throw new BizException(BizErrorCode.PASSWORD_MISMATCH);
         }
 
@@ -134,7 +152,13 @@ public class AuthApplicationService {
 
         auth.setLastLoginAt(clock.instant());
         userAuthRepository.save(auth);
-        recordLogin(user, identityType, identifier, ip, userAgent, LoginStatus.SUCCESS);
+        recordLogin(user, LoginAuditContext.builder()
+                .type(identityType)
+                .identifier(identifier)
+                .ip(ip)
+                .userAgent(userAgent)
+                .status(LoginStatus.SUCCESS)
+                .build());
         return tokenService.issueTokenPair(user);
     }
 
@@ -205,15 +229,14 @@ public class AuthApplicationService {
         return identifier;
     }
 
-    private void recordLogin(
-            UserEntity user, IdentityType type, String identifier, String ip, String userAgent, LoginStatus status) {
+    private void recordLogin(UserEntity user, LoginAuditContext ctx) {
         LoginAuditEntity audit = LoginAuditEntity.builder()
                 .user(user)
-                .identityType(type)
-                .identifier(identifier)
-                .ip(ip)
-                .userAgent(StringUtils.hasText(userAgent) ? userAgent : "")
-                .status(status)
+                .identityType(ctx.getType())
+                .identifier(ctx.getIdentifier())
+                .ip(ctx.getIp())
+                .userAgent(StringUtils.hasText(ctx.getUserAgent()) ? ctx.getUserAgent() : "")
+                .status(ctx.getStatus())
                 .build();
         loginAuditRepository.save(audit);
     }

@@ -46,6 +46,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/v1/auth/token/refresh").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/auth/oauth/linuxdo/authorize").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/auth/oauth/linuxdo/callback").permitAll()
+                        // 投资模块：搜索接口公开，其他接口需要认证
+                        .requestMatchers(HttpMethod.GET, "/api/v1/investment/search").permitAll()
+                        .requestMatchers("/api/v1/investment/security/**").permitAll()
                         .anyRequest().authenticated())
                 .httpBasic(Customizer.withDefaults());
         http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

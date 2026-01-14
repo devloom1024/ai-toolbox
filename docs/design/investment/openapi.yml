@@ -685,8 +685,8 @@ components:
         - type: object
           properties:
             data:
-              $ref: "#/components/schemas/SearchResult"
-    SearchResult:
+              $ref: "#/components/schemas/SearchResultResponse"
+    SearchResultResponse:
       type: object
       properties:
         securities:
@@ -733,14 +733,14 @@ components:
         - type: object
           properties:
             data:
-              $ref: "#/components/schemas/WatchlistData"
-    WatchlistData:
+              $ref: "#/components/schemas/WatchlistDataResponse"
+    WatchlistDataResponse:
       type: object
       properties:
         items:
           type: array
           items:
-            $ref: "#/components/schemas/WatchlistItem"
+            $ref: "#/components/schemas/WatchlistItemResponse"
           description: 自选列表
         total:
           type: integer
@@ -753,7 +753,7 @@ components:
           type: integer
           description: 每页数量
 
-    WatchlistItem:
+    WatchlistItemResponse:
       type: object
       description: 自选项
       properties:
@@ -804,7 +804,7 @@ components:
         - type: object
           properties:
             data:
-              $ref: "#/components/schemas/WatchlistItem"
+              $ref: "#/components/schemas/WatchlistItemResponse"
 
     AddWatchlistRequest:
       type: object
@@ -849,21 +849,24 @@ components:
         - type: object
           properties:
             data:
-              type: object
-              properties:
-                inWatchlist:
-                  type: boolean
-                  description: 是否已在自选列表中
-                watchlistId:
-                  type: integer
-                  format: int64
-                  nullable: true
-                  description: 自选记录 ID（如果存在）
-                groupId:
-                  type: integer
-                  format: int64
-                  nullable: true
-                  description: 所在分组 ID（如果存在）
+              $ref: "#/components/schemas/WatchlistCheckResponse"
+
+    WatchlistCheckResponse:
+      type: object
+      properties:
+        inWatchlist:
+          type: boolean
+          description: 是否已在自选列表中
+        watchlistId:
+          type: integer
+          format: int64
+          nullable: true
+          description: 自选记录 ID（如果存在）
+        groupId:
+          type: integer
+          format: int64
+          nullable: true
+          description: 所在分组 ID（如果存在）
 
     # ==================== 分组相关 ====================
     ApiResponseWatchlistGroups:
@@ -874,7 +877,7 @@ components:
             data:
               type: array
               items:
-                $ref: "#/components/schemas/WatchlistGroup"
+                $ref: "#/components/schemas/WatchlistGroupResponse"
               description: 分组列表
 
     ApiResponseWatchlistGroup:
@@ -883,9 +886,9 @@ components:
         - type: object
           properties:
             data:
-              $ref: "#/components/schemas/WatchlistGroup"
+              $ref: "#/components/schemas/WatchlistGroupResponse"
 
-    WatchlistGroup:
+    WatchlistGroupResponse:
       type: object
       description: 自选分组
       properties:
@@ -947,8 +950,8 @@ components:
         - type: object
           properties:
             data:
-              $ref: "#/components/schemas/SecurityDetail"
-    SecurityDetail:
+              $ref: "#/components/schemas/SecurityDetailResponse"
+    SecurityDetailResponse:
       type: object
       description: |
         标的详情，不同市场支持的可用数据类型不同
@@ -961,7 +964,7 @@ components:
         basicInfo:
           $ref: "#/components/schemas/SecurityBasicInfo"
         quote:
-          $ref: "#/components/schemas/QuoteData"
+          $ref: "#/components/schemas/QuoteDataResponse"
         kline:
           $ref: "#/components/schemas/KLineData"
           description: K线数据（部分市场支持）
@@ -1045,8 +1048,8 @@ components:
         - type: object
           properties:
             data:
-              $ref: "#/components/schemas/QuoteData"
-    QuoteData:
+              $ref: "#/components/schemas/QuoteDataResponse"
+    QuoteDataResponse:
       type: object
       description: 实时行情数据
       properties:
@@ -1136,8 +1139,8 @@ components:
         - type: object
           properties:
             data:
-              $ref: "#/components/schemas/KLineData"
-    KLineData:
+              $ref: "#/components/schemas/KLineDataResponse"
+    KLineDataResponse:
       type: object
       description: K 线数据
       properties:
@@ -1196,8 +1199,8 @@ components:
         - type: object
           properties:
             data:
-              $ref: "#/components/schemas/FundamentalData"
-    FundamentalData:
+              $ref: "#/components/schemas/FundamentalDataResponse"
+    FundamentalDataResponse:
       type: object
       description: 基本面数据
       properties:
@@ -1282,8 +1285,8 @@ components:
         - type: object
           properties:
             data:
-              $ref: "#/components/schemas/FinancialData"
-    FinancialData:
+              $ref: "#/components/schemas/FinancialDataResponse"
+    FinancialDataResponse:
       type: object
       description: 财务指标数据
       properties:
@@ -1380,8 +1383,8 @@ components:
         - type: object
           properties:
             data:
-              $ref: "#/components/schemas/CapitalFlowData"
-    CapitalFlowData:
+              $ref: "#/components/schemas/CapitalFlowDataResponse"
+    CapitalFlowDataResponse:
       type: object
       description: 资金流向数据
       properties:

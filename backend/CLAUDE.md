@@ -278,6 +278,34 @@ LinuxDo 回调到前端 → 前端调用 /api/v1/auth/oauth/linuxdo/callback
 
 ## 开发规范
 
+### 目录结构规范
+
+为保持目录结构清晰，便于后续代码组织，DDD 分层目录即使为空也应保留。
+
+1. **空目录处理**: 空目录应添加 `.gitkeep` 文件，确保目录结构被 Git 追踪
+   ```
+   src/main/java/com/devloom/ai/toolbox/{domain}/
+   ├── api/              # Controller 层
+   ├── service/          # 应用服务层
+   ├── domain/           # 领域层 (entity/repository/enums/converter)
+   ├── dto/              # 数据传输层 (request/response)
+   └── infra/            # 基础设施层
+   ```
+
+2. **禁止删除空目录**: 即使当前没有实现，也应保留目录结构并添加 `.gitkeep`
+   - 便于后续功能扩展时知道在哪里添加代码
+   - 保持项目结构的可预见性
+   - 避免多人协作时目录结构混乱
+
+3. **创建 .gitkeep**: 在空目录中创建空文件
+   ```bash
+   # 方式一：手动创建
+   touch src/main/java/.../domain/entity/.gitkeep
+
+   # 方式二：批量创建
+   find . -type d -empty -exec touch {}/.gitkeep \; -o -type d -empty -exec mkdir -p {}/.gitkeep \;
+   ```
+
 ### 代码注释规范
 
 1. **类注释**: 每个类必须有 `@author` 注解，值为 Git 配置的 username
@@ -334,6 +362,139 @@ LinuxDo 回调到前端 → 前端调用 /api/v1/auth/oauth/linuxdo/callback
 ### Repository 层
 
 使用 Spring Data JPA，继承 `JpaRepository<Entity, ID>`。参考 `auth/domain/repository/UserRepository.java`。
+
+### 方法参数规范
+
+当方法参数超过 **3 个**时，必须封装为独立的 Java Bean，避免长参数列表。
+
+**适用场景**:
+- Controller 的 Query Parameters
+- Service 层的复杂查询条件
+- Service 层的批量操作参数
+
+**命名规则**:
+- 查询参数: `*Query` 或 `*Request` (如 `GetWatchlistRequest`)
+- 操作命令: `*Command` (如 `LoginAuditCommand`)
+- 上下文对象: `*Context` (如 `LoginAuditContext`)
+
+**示例**:
+
+```java
+// ❌ 错误 - 5 个参数
+public WatchlistDataResponse getWatchlist(Long userId, Long groupId,
+        MarketType market, Integer page, Integer size) { }
+
+// ✅ 正确 - 封装为查询对象
+public WatchlistDataResponse getWatchlist(Long userId, GetWatchlistRequest query) {
+    // query 包含 groupId, market, page, size
+}
+```
+
+```java
+// ❌ 错误 - 6 个参数
+private void recordLogin(UserEntity user, IdentityType type,
+        String identifier, String ip, String userAgent, LoginStatus status) { }
+
+// ✅ 正确 - 封装为上下文对象
+private void recordLogin(UserEntity user, LoginAuditContext ctx) {
+    // ctx 包含 type, identifier, ip, userAgent, status
+}
+```
+
+### 分页查询规范
+
+项目提供统一的分页基类，支持快速实现分页查询。
+
+#### 分页请求基类
+
+**关键文件**: `common/dto/PageRequest.java`
+
+```java
+// 继承 PageRequest 获取分页参数处理能力
+@Getter
+@SuperBuilder
+public class GetWatchlistRequest extends PageRequest {
+    private Long groupId;      // 查询条件
+    private MarketType market; // 查询条件
+}
+```
+
+**分页参数**:
+| 字段 | 类型 | 说明 |
+|-----|------|------|
+| `page` | Integer | 页码，从 1 开始，默认 1 |
+| `size` | Integer | 每页大小，默认 20 |
+
+**工具方法**:
+- `getPageZeroBased()`: 获取从 0 开始的页码（用于 Spring Data JPA）
+- `getPageSize()`: 获取每页大小
+- `getPageOneBased()`: 获取从 1 开始的页码
+
+#### 分页响应基类
+
+**关键文件**: `common/dto/PageResponse.java`
+
+```java
+// 继承 PageResponse 获取分页信息
+@Getter
+@SuperBuilder
+public class WatchlistDataResponse extends PageResponse {
+    private List<WatchlistItemResponse> items; // 业务数据
+}
+```
+
+**响应字段**:
+| 字段 | 类型 | 说明 |
+|-----|------|------|
+| `page` | Integer | 当前页码（从 1 开始） |
+| `size` | Integer | 每页大小 |
+| `total` | Long | 总记录数 |
+| `pages` | int | 总页数（计算属性） |
+
+**判断方法**:
+- `hasPrevious()`: 是否有上一页
+- `hasNext()`: 是否有下一页
+- `isFirst()`: 是否为第一页
+- `isLast()`: 是否为最后一页
+
+#### 使用示例
+
+```java
+// Controller 层
+@GetMapping
+public ApiResponse<WatchlistDataResponse> getWatchlist(
+        @AuthenticationPrincipal CurrentUser currentUser,
+        @ModelAttribute GetWatchlistRequest query) {
+    WatchlistDataResponse result = watchlistService.getWatchlist(currentUser.getUserId(), query);
+    return ApiResponse.success(result);
+}
+
+// Service 层
+@Transactional(readOnly = true, rollbackFor = {Exception.class, Error.class})
+public WatchlistDataResponse getWatchlist(Long userId, GetWatchlistRequest request) {
+    WatchlistQuery query = WatchlistQuery.builder()
+            .groupId(request.getGroupId())
+            .market(request.getMarket())
+            .page(request.getPage())
+            .size(request.getSize())
+            .build();
+
+    PageRequest pageRequest = PageRequest.of(
+            query.getPageZeroBased(),
+            query.getPageSize(),
+            Sort.by(Sort.Direction.DESC, "createdAt")
+    );
+
+    Page<Entity> entityPage = repository.findAllByUserId(userId, pageRequest);
+
+    return WatchlistDataResponse.superBuilder()
+            .items(entityPage.getContent().stream().map(this::toDto).collect(toList()))
+            .total(entityPage.getTotalElements())
+            .page(query.getPageOneBased())
+            .size(query.getPageSize())
+            .build();
+}
+```
 
 ### 禁止事项
 

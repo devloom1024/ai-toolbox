@@ -25,24 +25,66 @@
 
 ## 任务列表
 
+## 模块目录结构
+
+采用按功能细分 + DDD 分层的混合架构：
+
+```
+backend/src/main/java/com/devloom/ai/toolbox/investment/
+├── search/              # 搜索功能
+│   ├── api/             # SearchController
+│   ├── domain/          # 实体、仓库
+│   ├── dto/
+│   │   ├── request/
+│   │   └── response/
+│   └── service/
+├── watchlist/           # 自选功能
+│   ├── api/             # WatchlistController
+│   ├── domain/          # 实体、仓库、枚举、转换器
+│   │   ├── entity/
+│   │   ├── repository/
+│   │   ├── enums/
+│   │   └── converter/
+│   ├── dto/
+│   │   ├── request/
+│   │   └── response/
+│   ├── service/
+│   │   └── support/     # 内部辅助类
+│   └── infra/           # 基础设施
+├── security/            # 标的详情功能
+│   ├── api/             # SecurityController
+│   ├── domain/
+│   ├── dto/
+│   └── service/
+└── common/              # 投资模块公共组件（如异常定义）
+```
+
+**说明**：
+- API 层放各功能目录顶层，便于路由统一管理
+- 公共组件（如自定义异常）放 `common`
+- 遵循 DDD 分层：`api` → `service` → `domain`
+
+## 任务列表
+
 ### 阶段一：后端基础设施
 
-| 任务 | 文件 | 描述 | 验收标准 |
-|------|------|------|---------|
-| 1.1 | `backend/src/main/resources/db/migration/V2__init_investment_schema.sql` | 创建投资模块数据库表 | Flyway 迁移成功 |
-| 1.2 | `backend/src/main/java/com/devloom/ai/toolbox/investment/domain/entity/` | 创建 Entity（WatchlistEntity, SecurityEntity） | Entity 与 DDL 对应 |
-| 1.3 | `backend/src/main/java/com/devloom/ai/toolbox/investment/domain/repository/` | 创建 Repository 接口 | JPA 方法可用 |
-| 1.4 | `backend/src/main/java/com/devloom/ai/toolbox/investment/dto/` | 创建 DTO（SearchRequest, WatchlistResponse, SecurityResponse） | 符合命名规范 |
-| 1.5 | `backend/src/main/java/com/devloom/ai/toolbox/investment/service/` | 创建 Service 层（WatchlistService, SecurityService） | 单元测试通过 |
+| 任务 | 文件 | 描述 | 验收标准 | 状态 |
+|------|------|------|---------|------|
+| 1.1 | `backend/src/main/resources/db/migration/V2__init_investment_schema.sql` | 创建投资模块数据库表 | Flyway 迁移成功 | ✅ |
+| 1.2 | `backend/src/main/java/com/devloom/ai/toolbox/investment/watchlist/domain/entity/` | 创建 WatchlistEntity | Entity 与 DDL 对应 | ✅ |
+| 1.3 | `backend/src/main/java/com/devloom/ai/toolbox/investment/watchlist/domain/repository/` | 创建 WatchlistRepository | JPA 方法可用 | ✅ |
+| 1.4 | `backend/src/main/java/com/devloom/ai/toolbox/investment/search/dto/` | 创建 SearchDTO | 符合命名规范 | ✅ |
+| 1.5 | `backend/src/main/java/com/devloom/ai/toolbox/investment/watchlist/service/` | 创建 WatchlistService | 单元测试通过 | ✅ |
+| 1.6 | `backend/src/main/java/com/devloom/ai/toolbox/investment/security/service/` | 创建 SecurityService | 单元测试通过 | ✅ |
 
 ### 阶段二：后端 API
 
-| 任务 | 文件 | 描述 | 验收标准 |
-|------|------|------|---------|
-| 2.1 | `backend/src/main/java/com/devloom/ai/toolbox/investment/api/SearchController.java` | 标的搜索接口 | 返回搜索结果 |
-| 2.2 | `backend/src/main/java/com/devloom/ai/toolbox/investment/api/WatchlistController.java` | 自选管理接口（CRUD） | 正常添加/移除 |
-| 2.3 | `backend/src/main/java/com/devloom/ai/toolbox/investment/api/SecurityController.java` | 标的详情接口 | 返回完整详情 |
-| 2.4 | `backend/src/main/java/com/devloom/ai/toolbox/common/security/SecurityConfig.java` | 更新安全配置 | 接口可访问 |
+| 任务 | 文件 | 描述 | 验收标准 | 状态 |
+|------|------|------|---------|------|
+| 2.1 | `backend/src/main/java/com/devloom/ai/toolbox/investment/search/api/SearchController.java` | 标的搜索接口 | 返回搜索结果 | ✅ |
+| 2.2 | `backend/src/main/java/com/devloom/ai/toolbox/investment/watchlist/api/WatchlistController.java` | 自选管理接口（CRUD） | 正常添加/移除 | ✅ |
+| 2.3 | `backend/src/main/java/com/devloom/ai/toolbox/investment/security/api/SecurityController.java` | 标的详情接口 | 返回完整详情 | ✅ |
+| 2.4 | `backend/src/main/java/com/devloom/ai/toolbox/common/security/SecurityConfig.java` | 更新安全配置 | 接口可访问 | ✅ |
 
 ### 阶段三：Python 网关扩展
 
@@ -51,50 +93,74 @@
 | 3.1 | `python-services/gateway/modules/akshare/client.py` | 添加 ETF/基金搜索方法 | 返回基金列表 |
 | 3.2 | `python-services/gateway/modules/akshare/mapper.py` | 统一字段映射（中文→英文） | 数据格式一致 |
 | 3.3 | `python-services/gateway/routers/akshare.py` | 添加基金搜索端点 | API 可调用 |
-| 3.4 | `python-services/gateway/routers/quote.py` | 新建标的详情路由 | 返回完整数据 |
+| 3.4 | `python-services/gateway/routers/security.py` | 新建标的详情路由 | 返回完整数据 |
+| 3.5 | `python-services/gateway/routers/security.py` | 添加分组管理端点 | 支持 CRUD |
 
 ### 阶段四：前端页面
 
 | 任务 | 文件 | 描述 | 验收标准 |
 |------|------|------|---------|
-| 4.1 | `frontend/app/[locale]/(app)/investment/search/page.tsx` | 搜索页面 | 可按名称/代码搜索 |
-| 4.2 | `frontend/app/[locale]/(app)/investment/watchlist/page.tsx` | 自选列表页 | 显示持仓信息 |
+| 4.1 | `frontend/app/[locale]/(app)/investment/search/page.tsx` | 搜索页面 | 可按名称/代码搜索，添加自选 |
+| 4.2 | `frontend/app/[locale]/(app)/investment/watchlist/page.tsx` | 自选列表页 | 显示持仓信息，含搜索入口 |
 | 4.3 | `frontend/app/[locale]/(app)/investment/detail/[symbol]/page.tsx` | 标的详情页 | 显示 K线/基本面 |
-| 4.4 | `frontend/components/investment/` | 通用组件（股票卡片、K线图） | 组件可复用 |
+| 4.4 | `frontend/components/investment/` | 通用组件（搜索框、股票卡片、K线图） | 组件可复用 |
 
-### 阶段五：详情页数据展示（参考同花顺）
+### 阶段五：详情页数据展示（按市场）
 
-| 数据类型 | 展示内容 | 数据源 |
-|---------|---------|--------|
-| 实时行情 | 当前价、涨跌幅、成交量、成交额 | akshare realtime |
-| K线图 | 日/周/月 K线（蜡烛图） | akshare kline |
-| 基本面 | 市盈率、市净率、股息率、总市值、流通市值 | akshare fundamental |
-| 财务指标 | 净利润、营收、ROE、负债率 | akshare financial |
-| 资金流向 | 主力净流入、小单净流入 | akshare capital |
-| 股东信息 | 十大流通股东 | akshare holder |
-| 分红送配 | 近年分红情况 | akshare dividend |
+| 数据类型 | A_SHARE | HK | US | ETF | FUND | 数据源 |
+|---------|---------|-----|-----|-----|------|--------|
+| 实时行情 | ✓ | ✓ | ✓ | ✓ | ✓ | akshare realtime |
+| K线图 | ✓ | ✓ | ✓ | ✓ | ✓ | akshare kline |
+| 基本面 | ✓ | - | - | - | - | akshare fundamental |
+| 财务指标 | ✓ | - | - | - | - | akshare financial |
+| 资金流向 | ✓ | - | - | - | - | akshare capital |
+| 净值数据 | - | - | - | ✓ | ✓ | akshare fund |
+| 持仓数据 | - | - | - | - | ✓ | akshare fund |
+| 分红数据 | - | - | - | ✓ | - | akshare fund |
+
+K线周期：D（日K）、W（周K）、M（月K）、1/5/15/30/60（分钟K）
+
+**注意**：1 分钟数据仅返回近 5 个交易日且不复权
+
+## 响应结构规范
+
+### 统一 API 响应格式
+```json
+{
+  "code": 0,
+  "message": "ok",
+  "data": { ... },
+  "traceId": "string"
+}
+```
+
+### 请求参数规范
+- **搜索**: `keyword` + `market`(可选) + `limit` + `offset`
+- **自选分页**: `page`(从1开始) + `size`
+- **标的代码**: 纯数字/字母（如 `600519`）
+- **市场类型**: `A_SHARE`, `HK`, `US`, `ETF`, `FUND`, `ALL`
 
 ## 技术决策
 
 ### 决策点 1：K线图前端渲染方案
 
 **选项**:
-- A. ECharts - 功能丰富，支持多种图表
+- A. ECharts - 功能丰富，支持多种图表，与后端 shadcn/ui 风格一致
 - B. TradingView Lightweight Charts - 专为金融图表设计
 - C. Recharts - React 生态，简洁但功能有限
 
-**推荐**: B（TradingView Lightweight Charts）
-- 原因：轻量、专为 K线图设计、交互体验好
+**决定**: A（ECharts）
+- 原因：与后端 UI 风格一致，生态丰富，社区活跃
 
 ### 决策点 2：标的代码格式
 
 **选项**:
 - A. 复合编码 `market:symbol`（如 `SH:600519`）
 - B. 前缀标识 `SH600519`、`HK00700`、`US:AAPL`
-- C. 统一市场字段 + 独立代码
+- C. 统一市场字段 + 独立代码（纯数字/字母）
 
-**推荐**: B
-- 原因：用户习惯、与同花顺一致、便于展示
+**决定**: C
+- 原因：与 OpenAPI 规范一致，简洁清晰
 
 ### 决策点 3：数据缓存策略
 
@@ -126,5 +192,5 @@
 ## 外部依赖
 
 - **akshare 库**: 金融数据获取
-- **TradingView Lightweight Charts**: K线渲染
+- **ECharts**: K线渲染
 - **shadcn/ui**: 前端 UI 组件
