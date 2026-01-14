@@ -1,5 +1,6 @@
 package com.devloom.ai.toolbox.investment.watchlist.service;
 
+import com.devloom.ai.toolbox.common.dto.PageResponse;
 import com.devloom.ai.toolbox.common.exception.BizErrorCode;
 import com.devloom.ai.toolbox.common.exception.BizException;
 import com.devloom.ai.toolbox.investment.watchlist.domain.entity.WatchlistEntity;
@@ -13,7 +14,6 @@ import com.devloom.ai.toolbox.investment.watchlist.dto.request.GetWatchlistReque
 import com.devloom.ai.toolbox.investment.watchlist.dto.request.UpdateGroupRequest;
 import com.devloom.ai.toolbox.investment.watchlist.dto.request.UpdateWatchlistRequest;
 import com.devloom.ai.toolbox.investment.watchlist.dto.response.WatchlistCheckResponse;
-import com.devloom.ai.toolbox.investment.watchlist.dto.response.WatchlistDataResponse;
 import com.devloom.ai.toolbox.investment.watchlist.dto.response.WatchlistGroupResponse;
 import com.devloom.ai.toolbox.investment.watchlist.dto.response.WatchlistItemResponse;
 import java.time.Instant;
@@ -42,7 +42,7 @@ public class WatchlistService {
      * 获取用户自选列表。
      */
     @Transactional(readOnly = true, rollbackFor = {Exception.class, Error.class})
-    public WatchlistDataResponse getWatchlist(Long userId, GetWatchlistRequest request) {
+    public PageResponse<WatchlistItemResponse> getWatchlist(Long userId, GetWatchlistRequest request) {
         WatchlistQuery query = WatchlistQuery.builder()
                 .groupId(request.getGroupId())
                 .market(request.getMarket())
@@ -66,12 +66,7 @@ public class WatchlistService {
                 .collect(Collectors.toList());
 
         int actualPage = query.getPageOneBased();
-        return WatchlistDataResponse.superBuilder()
-                .items(items)
-                .total(entityPage.getTotalElements())
-                .page(actualPage)
-                .size(pageSize)
-                .build();
+        return new PageResponse<>(actualPage, pageSize, entityPage.getTotalElements(), items);
     }
 
     /**

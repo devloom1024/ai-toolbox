@@ -1,5 +1,6 @@
 package com.devloom.ai.toolbox.investment.watchlist.api;
 
+import com.devloom.ai.toolbox.common.dto.PageResponse;
 import com.devloom.ai.toolbox.common.response.ApiResponse;
 import com.devloom.ai.toolbox.common.security.CurrentUser;
 import com.devloom.ai.toolbox.investment.watchlist.domain.enums.MarketType;
@@ -9,7 +10,6 @@ import com.devloom.ai.toolbox.investment.watchlist.dto.request.GetWatchlistReque
 import com.devloom.ai.toolbox.investment.watchlist.dto.request.UpdateGroupRequest;
 import com.devloom.ai.toolbox.investment.watchlist.dto.request.UpdateWatchlistRequest;
 import com.devloom.ai.toolbox.investment.watchlist.dto.response.WatchlistCheckResponse;
-import com.devloom.ai.toolbox.investment.watchlist.dto.response.WatchlistDataResponse;
 import com.devloom.ai.toolbox.investment.watchlist.dto.response.WatchlistGroupResponse;
 import com.devloom.ai.toolbox.investment.watchlist.dto.response.WatchlistItemResponse;
 import com.devloom.ai.toolbox.investment.watchlist.service.WatchlistService;
@@ -40,10 +40,10 @@ public class WatchlistController {
      * <p>获取当前用户的自选列表，支持按分组和市场过滤。</p>
      */
     @GetMapping
-    public ApiResponse<WatchlistDataResponse> getWatchlist(
+    public ApiResponse<PageResponse<WatchlistItemResponse>> getWatchlist(
             @AuthenticationPrincipal CurrentUser currentUser,
             @ModelAttribute GetWatchlistRequest query) {
-        WatchlistDataResponse result = watchlistService.getWatchlist(currentUser.getUserId(), query);
+        PageResponse<WatchlistItemResponse> result = watchlistService.getWatchlist(currentUser.getUserId(), query);
         return ApiResponse.success(result);
     }
 

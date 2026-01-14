@@ -1,20 +1,21 @@
 package com.devloom.ai.toolbox.common.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import lombok.Builder;
 import lombok.Getter;
+
+import java.util.List;
 
 /**
  * 分页响应基类。
  *
  * <p>提供统一分页信息：当前页、每页大小、总记录数、总页数。</p>
  *
+ * @param <T> 列表项类型
  * @author claude
  */
 @Getter
-@Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class PageResponse {
+public class PageResponse<T> {
 
     /** 当前页码（从 1 开始）。 */
     private Integer page;
@@ -24,6 +25,19 @@ public class PageResponse {
 
     /** 总记录数。 */
     private Long total;
+
+    /** 列表数据。 */
+    private List<T> items;
+
+    public PageResponse() {
+    }
+
+    public PageResponse(Integer page, Integer size, Long total, List<T> items) {
+        this.page = page;
+        this.size = size;
+        this.total = total;
+        this.items = items;
+    }
 
     /**
      * 计算总页数。
