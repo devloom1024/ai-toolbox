@@ -2,6 +2,7 @@ package com.devloom.ai.toolbox.investment.common.infra.marketdata.router;
 
 import com.devloom.ai.toolbox.investment.common.infra.marketdata.adapter.MarketDataAdapter;
 import com.devloom.ai.toolbox.investment.common.infra.marketdata.config.MarketDataProperties;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -12,45 +13,24 @@ import java.util.List;
  *
  * <p>按功能类型选择数据源，支持配置化路由和故障转移。</p>
  *
- * @author claude
+ * @author devloom
  */
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class DataSourceRouter {
-
-    /** 搜索功能路由键。 */
-    public static final String FEATURE_SEARCH = "search";
-
-    /** K 线功能路由键。 */
-    public static final String FEATURE_KLINE = "kline";
-
-    /** 基本面功能路由键。 */
-    public static final String FEATURE_FUNDAMENTAL = "fundamental";
-
-    /** 财务指标功能路由键。 */
-    public static final String FEATURE_FINANCIAL = "financial";
-
-    /** 资金流向功能路由键。 */
-    public static final String FEATURE_CAPITAL_FLOW = "capitalFlow";
-
-    private final List<MarketDataAdapter> adapters;
     private final MarketDataProperties properties;
-
-    public DataSourceRouter(List<MarketDataAdapter> adapters, MarketDataProperties properties) {
-        this.adapters = adapters;
-        this.properties = properties;
-        log.info("Initialized DataSourceRouter with {} adapters", adapters.size());
-    }
+    private final List<MarketDataAdapter> adapters;
 
     /**
      * 根据功能获取数据源适配器。
      *
-     * @param feature 功能路由键
+     * @param feature 功能路由键枚举
      * @param market 市场类型
      * @return 数据源适配器
      */
-    public MarketDataAdapter select(String feature, String market) {
-        MarketDataProperties.FeatureRouting routing = properties.getRouting(feature);
+    public MarketDataAdapter select(MarketDataFeature feature, String market) {
+        MarketDataProperties.FeatureRouting routing = properties.getRouting(feature.getKey());
 
         if (routing == null) {
             // 默认使用第一个可用的适配器
@@ -77,39 +57,39 @@ public class DataSourceRouter {
      * 获取搜索数据源适配器。
      */
     public MarketDataAdapter selectForSearch() {
-        return select(FEATURE_SEARCH, null);
+        return select(MarketDataFeature.SEARCH, null);
     }
 
     /**
      * 获取 K 线数据源适配器。
      */
     public MarketDataAdapter selectForKline(String market) {
-        return select(FEATURE_KLINE, market);
+        return select(MarketDataFeature.KLINE, market);
     }
 
     /**
      * 获取基本面数据源适配器。
      */
     public MarketDataAdapter selectForFundamental(String market) {
-        return select(FEATURE_FUNDAMENTAL, market);
+        return select(MarketDataFeature.FUNDAMENTAL, market);
     }
 
     /**
      * 获取财务指标数据源适配器。
      */
     public MarketDataAdapter selectForFinancial(String market) {
-        return select(FEATURE_FINANCIAL, market);
+        return select(MarketDataFeature.FINANCIAL, market);
     }
 
     /**
      * 获取资金流向数据源适配器。
      */
     public MarketDataAdapter selectForCapitalFlow(String market) {
-        return select(FEATURE_CAPITAL_FLOW, market);
+        return select(MarketDataFeature.CAPITAL_FLOW, market);
     }
 
     private MarketDataAdapter selectWithFallback(MarketDataProperties.FeatureRouting routing,
-            String feature, String market) {
+                                                 MarketDataFeature feature, String market) {
         List<String> chain = routing.getFallback();
 
         if (chain == null || chain.isEmpty()) {
@@ -129,7 +109,7 @@ public class DataSourceRouter {
             MarketDataAdapter adapter = findAdapter(sourceName);
             if (adapter != null && adapter.isAvailable()) {
                 log.info("Selected fallback source: {} for feature: {}, market: {}",
-                        sourceName, feature, market);
+                        sourceName, feature.getKey(), market);
                 return adapter;
             }
         }
@@ -138,7 +118,7 @@ public class DataSourceRouter {
         return selectPrimaryOrFirst(routing.getPrimary(), feature, market);
     }
 
-    private MarketDataAdapter selectPrimaryOrFirst(String primarySource, String feature, String market) {
+    private MarketDataAdapter selectPrimaryOrFirst(String primarySource, MarketDataFeature feature, String market) {
         MarketDataAdapter primary = findAdapter(primarySource);
         if (primary != null && primary.isAvailable()) {
             log.warn("Using primary source for unsupported market: feature={}, market={}",

@@ -1,6 +1,6 @@
 package com.devloom.ai.toolbox.investment.search.dto.request;
 
-import com.devloom.ai.toolbox.investment.watchlist.domain.enums.MarketType;
+import com.devloom.ai.toolbox.investment.common.domain.enums.MarketType;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -10,7 +10,7 @@ import lombok.Setter;
 /**
  * 搜索请求参数，对应 /api/v1/investment/search。
  *
- * @author claude
+ * @author devloom
  */
 @Getter
 @Setter

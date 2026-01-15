@@ -8,7 +8,7 @@ import lombok.Getter;
 /**
  * 实时行情数据。
  *
- * @author claude
+ * @author devloom
  */
 @Getter
 @Builder

@@ -82,12 +82,18 @@ class AkshareClient:
             K 线数据
         """
         return self._call_akshare(
-            "stock_zh_a_hist", symbol=symbol, period=period, start_date=start_date, end_date=end_date
+            "stock_zh_a_hist",
+            symbol=symbol,
+            period=period,
+            start_date=start_date,
+            end_date=end_date,
         )
 
     # ========== 搜索功能 ==========
 
-    def search_stock(self, keyword: str, market: str | None = None, limit: int = 20) -> pd.DataFrame:
+    def search_stock(
+        self, keyword: str, market: str | None = None, limit: int = 20, offset: int = 0
+    ) -> pd.DataFrame:
         """
         搜索股票 - 使用轻量级 API
 
@@ -95,66 +101,85 @@ class AkshareClient:
             keyword: 搜索关键字（股票代码或名称）
             market: 市场类型 (CN=A股, HK=港股, US=美股, ETF=ETF, FUND=基金, None=所有市场)
             limit: 返回结果数量限制
+            offset: 分页偏移量
 
         Returns:
-            匹配的股票列表 (仅包含代码和名称)
+            匹配的股票列表 (包含代码、名称、市场、类型)
         """
         # 根据市场类型获取数据
         if market == "CN":
             all_stocks = self._call_akshare("stock_info_a_code_name")
-            # 统一列名为中文
             all_stocks = all_stocks.rename(columns={"code": "代码", "name": "名称"})
+            all_stocks["市场"] = "CN"
+            all_stocks["类型"] = "STOCK"
         elif market == "HK":
             all_stocks = self._call_akshare("stock_hk_spot_em")
-            # 统一列名（去掉序号列）
-            all_stocks = all_stocks.rename(columns={"代码": "代码", "名称": "名称"})
+            all_stocks["市场"] = "HK"
+            all_stocks["类型"] = "STOCK"
         elif market == "US":
             all_stocks = self._call_akshare("stock_us_spot_em")
-            # 美股有 代码 列（格式如 105.AAPL）
+            all_stocks["市场"] = "US"
+            all_stocks["类型"] = "STOCK"
         elif market == "ETF":
             all_stocks = self._call_akshare("fund_etf_spot_em")
+            all_stocks["市场"] = "CN"
+            all_stocks["类型"] = "ETF"
         elif market == "FUND":
             all_stocks = self._call_akshare("fund_etf_spot_em")
+            all_stocks["市场"] = "CN"
+            all_stocks["类型"] = "FUND"
         else:
             # 搜索所有市场 - 合并 A 股、港股、美股、ETF 数据
             stocks_list = []
             try:
                 cn_stocks = self._call_akshare("stock_info_a_code_name")
                 cn_stocks = cn_stocks.rename(columns={"code": "代码", "name": "名称"})
+                cn_stocks["市场"] = "CN"
+                cn_stocks["类型"] = "STOCK"
                 stocks_list.append(cn_stocks)
             except Exception as e:
                 log_error("akshare", "stock_info_a_code_name", e)
             try:
-                stocks_list.append(self._call_akshare("stock_hk_spot_em"))
+                hk_stocks = self._call_akshare("stock_hk_spot_em")
+                hk_stocks["市场"] = "HK"
+                hk_stocks["类型"] = "STOCK"
+                stocks_list.append(hk_stocks)
             except Exception as e:
                 log_error("akshare", "stock_hk_spot_em", e)
             try:
                 us_stocks = self._call_akshare("stock_us_spot_em")
+                us_stocks["市场"] = "US"
+                us_stocks["类型"] = "STOCK"
                 stocks_list.append(us_stocks)
             except Exception as e:
                 log_error("akshare", "stock_us_spot_em", e)
             try:
-                stocks_list.append(self._call_akshare("fund_etf_spot_em"))
+                etf_stocks = self._call_akshare("fund_etf_spot_em")
+                etf_stocks["市场"] = "CN"
+                etf_stocks["类型"] = "ETF"
+                stocks_list.append(etf_stocks)
             except Exception as e:
                 log_error("akshare", "fund_etf_spot_em", e)
 
             if not stocks_list:
-                return pd.DataFrame(columns=["代码", "名称"])
+                return pd.DataFrame(columns=["代码", "名称", "市场", "类型"])
 
             # 合并数据，去除重复
             all_stocks = pd.concat(stocks_list, ignore_index=True)
             all_stocks = all_stocks.drop_duplicates(subset=["代码"], keep="first")
 
-        # 确保只保留代码和名称列
-        if market in ("ETF", "FUND"):
-            # ETF 有不同的列名
-            all_stocks = all_stocks[["代码", "名称"]] if "代码" in all_stocks.columns and "名称" in all_stocks.columns else all_stocks
-        else:
-            # A股、港股、美股使用统一的列名
-            all_stocks = all_stocks[["代码", "名称"]] if "代码" in all_stocks.columns and "名称" in all_stocks.columns else all_stocks
+        # 确保包含必需的列
+        required_columns = ["代码", "名称", "市场", "类型"]
+        for col in required_columns:
+            if col not in all_stocks.columns:
+                all_stocks[col] = None
+
+        # 只保留必需的列
+        all_stocks = all_stocks[required_columns]
 
         if not keyword:
-            return all_stocks.head(limit)
+            # 应用分页
+            return all_stocks.iloc[offset : offset + limit]
 
         # 按代码或名称匹配
         mask = (
@@ -162,7 +187,9 @@ class AkshareClient:
             | all_stocks["名称"].astype(str).str.contains(keyword, case=False, na=False)
         )
 
-        return all_stocks[mask].head(limit)
+        filtered = all_stocks[mask]
+        # 应用分页
+        return filtered.iloc[offset : offset + limit]
 
     # ========== 基本面数据 ==========
 

@@ -6,7 +6,7 @@ import lombok.Setter;
 /**
  * 创建分组请求参数，对应 /api/v1/investment/watchlist/groups (POST)。
  *
- * @author claude
+ * @author devloom
  */
 @Getter
 @Setter

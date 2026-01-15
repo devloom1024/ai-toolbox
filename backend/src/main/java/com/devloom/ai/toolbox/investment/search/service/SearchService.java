@@ -15,7 +15,7 @@ import java.util.Collections;
  *
  * <p>实际搜索逻辑委托给 Python 网关，通过 RestTemplate 调用。</p>
  *
- * @author claude
+ * @author devloom
  */
 @Slf4j
 @Service

@@ -1,14 +1,14 @@
 package com.devloom.ai.toolbox.investment.security.dto.response;
 
-import com.devloom.ai.toolbox.investment.watchlist.domain.enums.MarketType;
-import com.devloom.ai.toolbox.investment.watchlist.domain.enums.SecurityType;
+import com.devloom.ai.toolbox.investment.common.domain.enums.MarketType;
+import com.devloom.ai.toolbox.investment.common.domain.enums.SecurityType;
 import lombok.Builder;
 import lombok.Getter;
 
 /**
  * 标的基本信息。
  *
- * @author claude
+ * @author devloom
  */
 @Getter
 @Builder

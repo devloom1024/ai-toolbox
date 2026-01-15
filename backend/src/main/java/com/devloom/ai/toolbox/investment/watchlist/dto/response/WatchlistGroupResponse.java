@@ -6,7 +6,7 @@ import lombok.Getter;
 /**
  * 自选分组响应。
  *
- * @author claude
+ * @author devloom
  */
 @Getter
 @Builder

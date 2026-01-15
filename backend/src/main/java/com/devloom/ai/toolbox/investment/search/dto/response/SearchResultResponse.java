@@ -7,7 +7,7 @@ import lombok.Getter;
 /**
  * 搜索结果响应。
  *
- * @author claude
+ * @author devloom
  */
 @Getter
 @Builder

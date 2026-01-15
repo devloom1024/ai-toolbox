@@ -11,7 +11,7 @@ import java.util.List;
  * <p>提供统一分页信息：当前页、每页大小、总记录数、总页数。</p>
  *
  * @param <T> 列表项类型
- * @author claude
+ * @author devloom
  */
 @Getter
 @JsonInclude(JsonInclude.Include.NON_NULL)

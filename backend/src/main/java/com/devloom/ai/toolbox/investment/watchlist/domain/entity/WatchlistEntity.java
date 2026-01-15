@@ -1,7 +1,7 @@
 package com.devloom.ai.toolbox.investment.watchlist.domain.entity;
 
-import com.devloom.ai.toolbox.investment.watchlist.domain.enums.MarketType;
-import com.devloom.ai.toolbox.investment.watchlist.domain.enums.SecurityType;
+import com.devloom.ai.toolbox.investment.common.domain.enums.MarketType;
+import com.devloom.ai.toolbox.investment.common.domain.enums.SecurityType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -21,7 +21,7 @@ import lombok.Setter;
 /**
  * 自选记录表 t_watchlist。
  *
- * @author claude
+ * @author devloom
  */
 @Getter
 @Setter

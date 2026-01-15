@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * 标的搜索接口控制器。
  *
- * @author claude
+ * @author devloom
  */
 @RestController
 @RequestMapping("/api/v1/investment/search")

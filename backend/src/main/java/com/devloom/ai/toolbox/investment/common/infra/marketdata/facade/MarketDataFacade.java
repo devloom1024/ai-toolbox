@@ -14,7 +14,7 @@ import java.util.List;
  *
  * <p>统一入口访问各种金融数据，隐藏底层数据源细节。</p>
  *
- * @author claude
+ * @author devloom
  */
 @Slf4j
 @Component

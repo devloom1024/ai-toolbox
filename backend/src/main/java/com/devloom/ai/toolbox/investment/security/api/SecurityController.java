@@ -4,7 +4,7 @@ import com.devloom.ai.toolbox.common.response.ApiResponse;
 import com.devloom.ai.toolbox.investment.security.dto.response.QuoteDataResponse;
 import com.devloom.ai.toolbox.investment.security.dto.response.SecurityBasicInfo;
 import com.devloom.ai.toolbox.investment.security.service.SecurityService;
-import com.devloom.ai.toolbox.investment.watchlist.domain.enums.MarketType;
+import com.devloom.ai.toolbox.investment.common.domain.enums.MarketType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 /**
  * 标的详情接口控制器。
  *
- * @author claude
+ * @author devloom
  */
 @RestController
 @RequestMapping("/api/v1/investment/security")

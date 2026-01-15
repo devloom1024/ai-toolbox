@@ -9,7 +9,7 @@ import org.springframework.web.client.RestClient;
 /**
  * 金融数据服务配置。
  *
- * @author claude
+ * @author devloom
  */
 @Configuration
 @EnableConfigurationProperties({MarketDataProperties.class, AkshareProperties.class})

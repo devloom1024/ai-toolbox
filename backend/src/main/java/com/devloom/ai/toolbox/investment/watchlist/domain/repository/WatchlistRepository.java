@@ -1,7 +1,7 @@
 package com.devloom.ai.toolbox.investment.watchlist.domain.repository;
 
 import com.devloom.ai.toolbox.investment.watchlist.domain.entity.WatchlistEntity;
-import com.devloom.ai.toolbox.investment.watchlist.domain.enums.MarketType;
+import com.devloom.ai.toolbox.investment.common.domain.enums.MarketType;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -14,7 +14,7 @@ import org.springframework.stereotype.Repository;
 /**
  * 自选记录数据访问接口。
  *
- * @author claude
+ * @author devloom
  */
 @Repository
 public interface WatchlistRepository extends JpaRepository<WatchlistEntity, Long> {

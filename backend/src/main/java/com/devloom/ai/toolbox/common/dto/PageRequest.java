@@ -9,7 +9,7 @@ import lombok.experimental.SuperBuilder;
  *
  * <p>提供统一分页参数：页码和每页大小。</p>
  *
- * @author claude
+ * @author devloom
  */
 @Getter
 @SuperBuilder

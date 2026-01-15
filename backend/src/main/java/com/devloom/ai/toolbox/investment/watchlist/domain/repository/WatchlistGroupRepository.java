@@ -8,7 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 /**
  * 自选分组数据访问接口。
  *
- * @author claude
+ * @author devloom
  */
 public interface WatchlistGroupRepository extends JpaRepository<WatchlistGroupEntity, Long> {
 

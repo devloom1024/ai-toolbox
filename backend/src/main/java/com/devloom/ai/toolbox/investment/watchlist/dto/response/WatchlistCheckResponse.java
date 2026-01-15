@@ -6,7 +6,7 @@ import lombok.Getter;
 /**
  * 检查自选状态响应。
  *
- * @author claude
+ * @author devloom
  */
 @Getter
 @Builder

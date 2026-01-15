@@ -16,7 +16,7 @@ import lombok.Setter;
 /**
  * 自选分组表 t_watchlist_group。
  *
- * @author claude
+ * @author devloom
  */
 @Getter
 @Setter

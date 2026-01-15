@@ -3,7 +3,7 @@ package com.devloom.ai.toolbox.investment.watchlist.api;
 import com.devloom.ai.toolbox.common.dto.PageResponse;
 import com.devloom.ai.toolbox.common.response.ApiResponse;
 import com.devloom.ai.toolbox.common.security.CurrentUser;
-import com.devloom.ai.toolbox.investment.watchlist.domain.enums.MarketType;
+import com.devloom.ai.toolbox.investment.common.domain.enums.MarketType;
 import com.devloom.ai.toolbox.investment.watchlist.dto.request.AddWatchlistRequest;
 import com.devloom.ai.toolbox.investment.watchlist.dto.request.CreateGroupRequest;
 import com.devloom.ai.toolbox.investment.watchlist.dto.request.GetWatchlistRequest;
@@ -25,7 +25,7 @@ import java.util.List;
 /**
  * 自选管理接口控制器。
  *
- * @author claude
+ * @author devloom
  */
 @RestController
 @RequestMapping("/api/v1/investment/watchlist")

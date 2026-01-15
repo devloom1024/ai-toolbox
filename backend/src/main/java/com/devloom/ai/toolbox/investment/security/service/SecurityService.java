@@ -2,7 +2,7 @@ package com.devloom.ai.toolbox.investment.security.service;
 
 import com.devloom.ai.toolbox.investment.security.dto.response.QuoteDataResponse;
 import com.devloom.ai.toolbox.investment.security.dto.response.SecurityBasicInfo;
-import com.devloom.ai.toolbox.investment.watchlist.domain.enums.MarketType;
+import com.devloom.ai.toolbox.investment.common.domain.enums.MarketType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -14,7 +14,7 @@ import org.springframework.web.client.RestTemplate;
  *
  * <p>实际数据获取委托给 Python 网关。</p>
  *
- * @author claude
+ * @author devloom
  */
 @Slf4j
 @Service

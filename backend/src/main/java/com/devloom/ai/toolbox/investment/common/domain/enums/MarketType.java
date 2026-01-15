@@ -1,4 +1,4 @@
-package com.devloom.ai.toolbox.investment.watchlist.domain.enums;
+package com.devloom.ai.toolbox.investment.common.domain.enums;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

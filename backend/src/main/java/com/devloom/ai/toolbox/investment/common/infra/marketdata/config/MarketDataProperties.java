@@ -11,7 +11,7 @@ import java.util.Map;
  *
  * <p>支持按功能配置数据源和故障转移链。</p>
  *
- * @author claude
+ * @author devloom
  */
 @Data
 @ConfigurationProperties(prefix = "investment.marketdata")

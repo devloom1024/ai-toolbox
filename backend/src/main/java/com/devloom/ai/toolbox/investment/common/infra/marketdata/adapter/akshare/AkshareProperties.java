@@ -8,7 +8,7 @@ import java.time.Duration;
 /**
  * Akshare 数据源配置。
  *
- * @author claude
+ * @author devloom
  */
 @Data
 @ConfigurationProperties(prefix = "investment.marketdata.akshare")

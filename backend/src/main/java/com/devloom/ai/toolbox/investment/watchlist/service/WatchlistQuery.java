@@ -1,14 +1,14 @@
 package com.devloom.ai.toolbox.investment.watchlist.service;
 
 import com.devloom.ai.toolbox.common.dto.PageRequest;
-import com.devloom.ai.toolbox.investment.watchlist.domain.enums.MarketType;
+import com.devloom.ai.toolbox.investment.common.domain.enums.MarketType;
 import lombok.Getter;
 import lombok.experimental.SuperBuilder;
 
 /**
  * 自选列表查询参数。
  *
- * @author claude
+ * @author devloom
  */
 @Getter
 @SuperBuilder

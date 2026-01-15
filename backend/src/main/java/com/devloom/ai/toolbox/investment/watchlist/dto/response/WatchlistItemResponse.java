@@ -1,7 +1,7 @@
 package com.devloom.ai.toolbox.investment.watchlist.dto.response;
 
-import com.devloom.ai.toolbox.investment.watchlist.domain.enums.MarketType;
-import com.devloom.ai.toolbox.investment.watchlist.domain.enums.SecurityType;
+import com.devloom.ai.toolbox.investment.common.domain.enums.MarketType;
+import com.devloom.ai.toolbox.investment.common.domain.enums.SecurityType;
 import java.math.BigDecimal;
 import java.time.Instant;
 import lombok.Builder;
@@ -10,7 +10,7 @@ import lombok.Getter;
 /**
  * 自选项响应。
  *
- * @author claude
+ * @author devloom
  */
 @Getter
 @Builder

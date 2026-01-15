@@ -5,7 +5,7 @@ import com.devloom.ai.toolbox.common.exception.BizErrorCode;
 import com.devloom.ai.toolbox.common.exception.BizException;
 import com.devloom.ai.toolbox.investment.watchlist.domain.entity.WatchlistEntity;
 import com.devloom.ai.toolbox.investment.watchlist.domain.entity.WatchlistGroupEntity;
-import com.devloom.ai.toolbox.investment.watchlist.domain.enums.MarketType;
+import com.devloom.ai.toolbox.investment.common.domain.enums.MarketType;
 import com.devloom.ai.toolbox.investment.watchlist.domain.repository.WatchlistGroupRepository;
 import com.devloom.ai.toolbox.investment.watchlist.domain.repository.WatchlistRepository;
 import com.devloom.ai.toolbox.investment.watchlist.dto.request.AddWatchlistRequest;
@@ -29,7 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * 自选服务。
  *
- * @author claude
+ * @author devloom
  */
 @Service
 @RequiredArgsConstructor

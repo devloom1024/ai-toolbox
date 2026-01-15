@@ -1,6 +1,7 @@
 package com.devloom.ai.toolbox.investment.common.infra.marketdata.adapter;
 
-import com.devloom.ai.toolbox.investment.common.infra.marketdata.dto.*;
+import com.devloom.ai.toolbox.investment.common.infra.marketdata.dto.request.*;
+import com.devloom.ai.toolbox.investment.common.infra.marketdata.dto.response.*;
 
 import java.util.List;
 
@@ -9,7 +10,7 @@ import java.util.List;
  *
  * <p>定义统一的数据访问接口，支持按功能选择数据源。</p>
  *
- * @author claude
+ * @author devloom
  */
 public interface MarketDataAdapter {
 
@@ -36,18 +37,21 @@ public interface MarketDataAdapter {
      * @param request 搜索请求
      * @return 搜索结果列表
      */
-    List<SecuritySearchResult> search(SearchRequest request);
+    default List<SecuritySearchResponse> search(SearchRequest request) {
+        throw new UnsupportedOperationException(getName() + " does not support search");
+    }
 
     // ========== 实时行情 ==========
 
     /**
      * 获取实时行情。
      *
-     * @param symbol 标的代码
-     * @param market 市场类型
+     * @param request 行情请求
      * @return 行情数据
      */
-    QuoteResponse getQuote(String symbol, String market);
+    default QuoteResponse getQuote(QuoteRequest request) {
+        throw new UnsupportedOperationException(getName() + " does not support getQuote");
+    }
 
     // ========== K 线数据 ==========
 
@@ -57,38 +61,43 @@ public interface MarketDataAdapter {
      * @param request K 线请求
      * @return K 线数据列表
      */
-    KlineResponse getKline(KlineRequest request);
+    default KlineResponse getKline(KlineRequest request) {
+        throw new UnsupportedOperationException(getName() + " does not support getKline");
+    }
 
     // ========== 基本面数据 ==========
 
     /**
      * 获取基本面数据。
      *
-     * @param symbol 标的代码
-     * @param market 市场类型
+     * @param request 基本面请求
      * @return 基本面数据
      */
-    FundamentalResponse getFundamental(String symbol, String market);
+    default FundamentalResponse getFundamental(FundamentalRequest request) {
+        throw new UnsupportedOperationException(getName() + " does not support getFundamental");
+    }
 
     // ========== 财务指标 ==========
 
     /**
      * 获取财务指标。
      *
-     * @param symbol 标的代码
-     * @param market 市场类型
+     * @param request 财务指标请求
      * @return 财务指标数据
      */
-    FinancialResponse getFinancial(String symbol, String market);
+    default FinancialResponse getFinancial(FinancialRequest request) {
+        throw new UnsupportedOperationException(getName() + " does not support getFinancial");
+    }
 
     // ========== 资金流向 ==========
 
     /**
      * 获取资金流向。
      *
-     * @param symbol 标的代码
-     * @param market 市场类型
+     * @param request 资金流向请求
      * @return 资金流向数据
      */
-    CapitalFlowResponse getCapitalFlow(String symbol, String market);
+    default CapitalFlowResponse getCapitalFlow(CapitalFlowRequest request) {
+        throw new UnsupportedOperationException(getName() + " does not support getCapitalFlow");
+    }
 }
