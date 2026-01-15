@@ -31,7 +31,7 @@ public class DataSourceRouter {
      * @return 数据源适配器
      */
     public MarketDataAdapter select(MarketDataFeature feature, MarketType market) {
-        MarketDataProperties.FeatureRouting routing = properties.getRouting(feature.getKey());
+        MarketDataProperties.FeatureRouting routing = properties.getRouting(feature);
 
         if (routing == null) {
             // 默认使用第一个可用的适配器
@@ -40,10 +40,10 @@ public class DataSourceRouter {
 
         String primarySource = routing.getPrimary();
 
-        // 1. 检查主数据源是否支持该市场
-        if (isMarketSupported(primarySource, market)) {
+        // 1. 检查主数据源是否支持该市场且已启用
+        if (isMarketAndFeatureSupported(primarySource, market, feature)) {
             MarketDataAdapter adapter = findAdapter(primarySource);
-            if (adapter != null && adapter.isAvailable()) {
+            if (adapter != null && isEnabled(adapter) && adapter.isAvailable()) {
                 log.debug("Selected primary source: {} for feature: {}, market: {}",
                         primarySource, feature, market);
                 return adapter;
@@ -103,12 +103,12 @@ public class DataSourceRouter {
                 continue;
             }
 
-            if (!isMarketSupported(sourceName, market)) {
+            if (!isMarketAndFeatureSupported(sourceName, market, feature)) {
                 continue;
             }
 
             MarketDataAdapter adapter = findAdapter(sourceName);
-            if (adapter != null && adapter.isAvailable()) {
+            if (adapter != null && isEnabled(adapter) && adapter.isAvailable()) {
                 log.info("Selected fallback source: {} for feature: {}, market: {}",
                         sourceName, feature.getKey(), market);
                 return adapter;
@@ -121,7 +121,7 @@ public class DataSourceRouter {
 
     private MarketDataAdapter selectPrimaryOrFirst(String primarySource, MarketDataFeature feature, MarketType market) {
         MarketDataAdapter primary = findAdapter(primarySource);
-        if (primary != null && primary.isAvailable()) {
+        if (primary != null && isEnabled(primary) && primary.isAvailable()) {
             log.warn("Using primary source for unsupported market: feature={}, market={}",
                     feature, market);
             return primary;
@@ -133,6 +133,7 @@ public class DataSourceRouter {
 
     private MarketDataAdapter selectFirstAvailable() {
         return adapters.stream()
+                .filter(this::isEnabled)
                 .filter(MarketDataAdapter::isAvailable)
                 .findFirst()
                 .orElseThrow(() -> new NoDataSourceException("No available data source"));
@@ -145,15 +146,38 @@ public class DataSourceRouter {
                 .orElse(null);
     }
 
-    private boolean isMarketSupported(String source, MarketType market) {
-        if (market == null) {
+    /**
+     * 检查适配器是否在配置中启用。
+     */
+    private boolean isEnabled(MarketDataAdapter adapter) {
+        MarketDataProperties.DataSourceConfig config = properties.getSourceConfig(adapter.getName());
+        if (config == null) {
+            // 默认启用
             return true;
         }
-        MarketDataProperties.DataSourceConfig config = properties.getSourceConfig(source);
-        if (config == null || config.getMarkets() == null) {
-            return true;
+        return config.isEnabled();
+    }
+
+    /**
+     * 检查数据源是否支持指定市场和功能。
+     */
+    private boolean isMarketAndFeatureSupported(String source, MarketType market, MarketDataFeature feature) {
+        MarketDataAdapter adapter = findAdapter(source);
+        if (adapter == null) {
+            return false;
         }
-        return config.getMarkets().contains(market);
+
+        // 检查功能支持
+        if (!adapter.getSupportedFeatures().contains(feature)) {
+            return false;
+        }
+
+        // 检查市场支持
+        if (market != null && !adapter.getSupportedMarkets().contains(market)) {
+            return false;
+        }
+
+        return true;
     }
 
     /**

@@ -345,7 +345,7 @@ LinuxDo 回调到前端 → 前端调用 /api/v1/auth/oauth/linuxdo/callback
    - 响应 DTO: `*Result` (如 `AkShareQuoteResult`)
 3. **禁止事项**:
    - ❌ Infra 层 DTO 禁止使用 `*Request/*Response` 后缀 (与 API 层冲突)
-   - ❌ 除非必须使用 Builder 模式，否则不要使用 `@Builder` 注解
+   - ❌ 禁止使用 `@Builder` 注解，Java Bean 默认使用 `@Data` 注解
 4. **字段注释**: 所有字段必须有 Javadoc 注释
 5. **校验注解**: Bean Validation 的 `message` 必须引用国际化资源键
 
@@ -418,7 +418,6 @@ private void recordLogin(UserEntity user, LoginAuditContext ctx) {
 ```java
 // 继承 PageRequest 获取分页参数处理能力
 @Getter
-@SuperBuilder
 public class GetWatchlistRequest extends PageRequest {
     private Long groupId;      // 查询条件
     private MarketType market; // 查询条件
@@ -443,7 +442,6 @@ public class GetWatchlistRequest extends PageRequest {
 ```java
 // 继承 PageResponse 获取分页信息
 @Getter
-@SuperBuilder
 public class WatchlistDataResponse extends PageResponse {
     private List<WatchlistItemResponse> items; // 业务数据
 }

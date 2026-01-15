@@ -1,9 +1,12 @@
 package com.devloom.ai.toolbox.investment.common.infra.marketdata.adapter;
 
+import com.devloom.ai.toolbox.investment.common.domain.enums.MarketType;
 import com.devloom.ai.toolbox.investment.common.infra.marketdata.dto.command.*;
 import com.devloom.ai.toolbox.investment.common.infra.marketdata.dto.result.*;
+import com.devloom.ai.toolbox.investment.common.infra.marketdata.router.MarketDataFeature;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * 市场数据适配器接口。
@@ -20,12 +23,23 @@ public interface MarketDataAdapter {
     String getName();
 
     /**
-     * 获取优先级（数字越小优先级越高）。
+     * 获取适配器支持的市场类型。
+     *
+     * @return 支持的市场类型集合
      */
-    int getPriority();
+    Set<MarketType> getSupportedMarkets();
 
     /**
-     * 检查适配器是否可用。
+     * 获取适配器支持的功能类型。
+     *
+     * @return 支持的功能类型集合
+     */
+    Set<MarketDataFeature> getSupportedFeatures();
+
+    /**
+     * 检查适配器是否可用（健康检查）。
+     *
+     * @return 是否可用
      */
     boolean isAvailable();
 

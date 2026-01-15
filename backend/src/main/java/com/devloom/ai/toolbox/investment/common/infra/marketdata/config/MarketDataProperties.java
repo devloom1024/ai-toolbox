@@ -1,6 +1,6 @@
 package com.devloom.ai.toolbox.investment.common.infra.marketdata.config;
 
-import com.devloom.ai.toolbox.investment.common.domain.enums.MarketType;
+import com.devloom.ai.toolbox.investment.common.infra.marketdata.router.MarketDataFeature;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
@@ -28,12 +28,6 @@ public class MarketDataProperties {
     public static class DataSourceConfig {
         /** 是否启用。 */
         private boolean enabled = true;
-
-        /** 优先级（数字越小优先级越高）。 */
-        private int priority = 1;
-
-        /** 支持的市场列表。 */
-        private List<MarketType> markets;
     }
 
     @Data
@@ -48,11 +42,11 @@ public class MarketDataProperties {
     /**
      * 获取功能的路由配置。
      */
-    public FeatureRouting getRouting(String feature) {
+    public FeatureRouting getRouting(MarketDataFeature feature) {
         if (routing == null) {
             return null;
         }
-        return routing.get(feature);
+        return routing.get(feature.getKey());
     }
 
     /**
