@@ -1,7 +1,6 @@
 package com.devloom.ai.toolbox.investment.common.infra.marketdata.dto.result;
 
-import lombok.Getter;
-import lombok.experimental.SuperBuilder;
+import lombok.Data;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -11,8 +10,7 @@ import java.time.Instant;
  *
  * @author devloom
  */
-@Getter
-@SuperBuilder
+@Data
 public class FundamentalResult {
 
     /** 标的代码。 */

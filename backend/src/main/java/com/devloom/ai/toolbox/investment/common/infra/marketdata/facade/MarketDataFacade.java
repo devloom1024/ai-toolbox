@@ -70,14 +70,13 @@ public class MarketDataFacade {
             String startDate, String endDate, int limit) {
         log.debug("Getting kline for {} market: {} period: {}", symbol, market, period);
         MarketDataAdapter adapter = router.selectForKline(market);
-        KlineCommand command = KlineCommand.builder()
-                .symbol(symbol)
-                .market(market)
-                .period(period)
-                .startDate(startDate)
-                .endDate(endDate)
-                .limit(limit)
-                .build();
+        KlineCommand command = new KlineCommand();
+        command.setSymbol(symbol);
+        command.setMarket(market);
+        command.setPeriod(period);
+        command.setStartDate(startDate);
+        command.setEndDate(endDate);
+        command.setLimit(limit);
         return adapter.getKline(command);
     }
 

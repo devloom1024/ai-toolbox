@@ -2,16 +2,14 @@ package com.devloom.ai.toolbox.investment.common.infra.marketdata.dto.result;
 
 import com.devloom.ai.toolbox.investment.common.domain.enums.MarketType;
 import com.devloom.ai.toolbox.investment.common.domain.enums.SecurityType;
-import lombok.Getter;
-import lombok.experimental.SuperBuilder;
+import lombok.Data;
 
 /**
  * 搜索结果。
  *
  * @author devloom
  */
-@Getter
-@SuperBuilder
+@Data
 public class SecuritySearchResult {
 
     /** 标的代码（纯数字或字母）。 */

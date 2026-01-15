@@ -1,0 +1,887 @@
+openapi: 3.1.0
+info:
+  title: Python Gateway Akshare API
+  description: |
+    Akshare 数据源 API，为 Java 后端提供市场数据服务。
+
+    ## 核心设计原则
+
+    - **差异化数据返回**：不同标的类型（股票/指数/ETF）返回的数据字段不同
+    - **复权类型可配置**：K 线数据支持前复权/后复权/不复权
+    - **字段标准化**：所有输出字段统一使用英文命名，对齐 Java DTO
+
+    ## 标的类型说明
+
+    | 类型 | 代码特征 | 支持的数据 |
+    |------|---------|-----------|
+    | 股票 | sh600000, sz000001, 688xxx, 8xxxxx | 全部支持 |
+    | 指数 | sh000001, sz399001, sh399006 | 仅 K 线 |
+    | ETF | 510500, 511880, 159xxx, 510xxx | 部分字段 |
+
+  version: 1.0.0
+  contact:
+    name: AI Toolbox
+    url: https://github.com/devloom/ai-toolbox
+
+servers:
+  - url: http://localhost:8081/api/v1/akshare
+    description: 开发环境
+  - url: http://python-gateway:8081/api/v1/akshare
+    description: 生产环境
+
+tags:
+  - name: kline
+    description: K 线数据
+  - name: fundamental
+    description: 基本面数据
+  - name: financial
+    description: 财务指标
+  - name: capital-flow
+    description: 资金流向
+  - name: search
+    description: 搜索功能（保留现有接口）
+
+paths:
+  /kline:
+    get:
+      tags:
+        - kline
+      summary: 获取 K 线数据
+      description: |
+        获取指定标的的 K 线数据。
+
+        **不同标的类型的返回字段差异：**
+
+        - 股票/ETF：返回完整字段（含成交额、涨跌幅、振幅）
+        - 指数：仅返回基础字段（日期、开盘、最高、最低、收盘、成交量）
+
+        **复权类型说明：**
+        - `""` (空)：不复权，保持原始价格
+        - `qfq`：前复权，保持当前价格不变，调整历史价格
+        - `hfq`：后复权，保持历史价格不变，调整当前价格
+      operationId: getKline
+      parameters:
+        - name: symbol
+          in: query
+          description: 标的代码
+          required: true
+          schema:
+            type: string
+            example: "600000"
+            description: |
+              - 股票：sh600000, sz000001, 688xxx, 8xxxxx (北交所)
+              - 指数：sh000001, sz399001, sh399006
+              - ETF：510500, 511880, 159xxx
+        - name: period
+          in: query
+          description: K 线周期
+          schema:
+            type: string
+            enum: [daily, weekly, monthly, 5min, 15min, 30min, 60min]
+            default: daily
+          example: daily
+        - name: start_date
+          in: query
+          description: 开始日期 (YYYYMMDD)
+          schema:
+            type: string
+            pattern: '^[0-9]{8}$'
+            example: "20240101"
+        - name: end_date
+          in: query
+          description: 结束日期 (YYYYMMDD)
+          schema:
+            type: string
+            pattern: '^[0-9]{8}$'
+            example: "20241231"
+        - name: limit
+          in: query
+          description: 数据条数限制
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 5000
+            default: 500
+        - name: adjust
+          in: query
+          description: 复权类型
+          schema:
+            type: string
+            enum: ["", qfq, hfq]
+            default: ""
+          example: qfq
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KlineResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /fundamental:
+    get:
+      tags:
+        - fundamental
+      summary: 获取基本面数据
+      description: |
+        获取指定标的的基本面数据（总市值、流通市值、市盈率、市净率等）。
+
+        **不同标的类型的返回字段差异：**
+
+        - 股票：返回完整的基本面字段
+        - 指数：仅返回 symbol 和 lastUpdated
+        - ETF：返回基础信息（规模、净值等）和部分股票字段
+      operationId: getFundamental
+      parameters:
+        - name: symbol
+          in: query
+          description: 标的代码
+          required: true
+          schema:
+            type: string
+            example: "600000"
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FundamentalResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /financial:
+    get:
+      tags:
+        - financial
+      summary: 获取财务指标
+      description: |
+        获取指定标的的财务指标数据（营业收入、净利润、ROE、毛利率等）。
+
+        **不同标的类型的返回字段差异：**
+
+        - 股票：返回完整的财务指标列表
+        - 指数/ETF：返回空列表
+      operationId: getFinancial
+      parameters:
+        - name: symbol
+          in: query
+          description: 标的代码
+          required: true
+          schema:
+            type: string
+            example: "600000"
+        - name: indicator
+          in: query
+          description: 数据类型
+          schema:
+            type: string
+            enum: [report, quarter]
+            default: report
+          example: report
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FinancialResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /capital-flow:
+    get:
+      tags:
+        - capital-flow
+      summary: 获取资金流向
+      description: |
+        获取指定标的的资金流向数据（主力净流入、超大单、大单、中单、小单）。
+
+        **不同标的类型的返回字段差异：**
+
+        - 股票：返回完整的资金流向数据
+        - ETF：仅返回部分字段
+        - 指数：不支持，返回 error 字段
+      operationId: getCapitalFlow
+      parameters:
+        - name: symbol
+          in: query
+          description: 标的代码
+          required: true
+          schema:
+            type: string
+            example: "600000"
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CapitalFlowResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /search:
+    get:
+      tags:
+        - search
+      summary: 搜索标的
+      description: |
+        搜索股票、ETF 等标的。
+
+        **保留现有接口，不做修改。**
+      operationId: searchStock
+      parameters:
+        - name: keyword
+          in: query
+          description: 搜索关键字（股票代码或名称）
+          required: true
+          schema:
+            type: string
+            example: "茅台"
+        - name: market
+          in: query
+          description: |
+            市场类型枚举，与后端 MarketType 一致：
+            - A_SHARE: A 股
+            - HK: 港股
+            - US: 美股
+            - ETF: 交易所交易基金
+            - FUND: 基金
+            - null: 全部市场
+          schema:
+            type: string
+            enum: [A_SHARE, HK, US, ETF, FUND, null]
+            default: null
+          example: null
+        - name: limit
+          in: query
+          description: 返回结果数量限制
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: offset
+          in: query
+          description: 分页偏移量
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchResponse'
+
+components:
+  schemas:
+    # ============ 通用响应 ============
+    ApiResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          example: 0
+          description: 状态码 (0=成功)
+        message:
+          type: string
+          example: "success"
+          description: 状态消息
+        data:
+          type: object
+          description: 响应数据
+
+    # ============ Kline ============
+    KlineResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/KlineData'
+
+    KlineData:
+      type: object
+      properties:
+        symbol:
+          type: string
+          example: "600000"
+          description: 标的代码
+        period:
+          type: string
+          example: "daily"
+          description: K 线周期
+        adjust:
+          type: string
+          example: "qfq"
+          description: 复权类型
+        klines:
+          type: array
+          description: K 线数据列表
+          items:
+            oneOf:
+              - $ref: '#/components/schemas/KlineItemStock'
+              - $ref: '#/components/schemas/KlineItemIndex'
+
+    KlineItemStock:
+      type: object
+      description: 股票/ETF K 线项（完整字段）
+      properties:
+        datetime:
+          type: string
+          format: date-time
+          example: "2024-01-02 00:00:00"
+          description: 日期时间
+        open:
+          type: number
+          format: double
+          example: 12.34
+          description: 开盘价
+        high:
+          type: number
+          format: double
+          example: 12.56
+          description: 最高价
+        low:
+          type: number
+          format: double
+          example: 12.20
+          description: 最低价
+        close:
+          type: number
+          format: double
+          example: 12.45
+          description: 收盘价
+        volume:
+          type: integer
+          format: int64
+          example: 12345678
+          description: 成交量（手）
+        turnover:
+          type: number
+          format: double
+          example: 152345678.90
+          description: 成交额（元）
+        changePercent:
+          type: number
+          format: double
+          example: 1.23
+          description: 涨跌幅（%）
+        amplitude:
+          type: number
+          format: double
+          example: 2.95
+          description: 振幅（%）
+
+    KlineItemIndex:
+      type: object
+      description: 指数 K 线项（基础字段）
+      properties:
+        datetime:
+          type: string
+          format: date-time
+          example: "2024-01-02 00:00:00"
+          description: 日期时间
+        open:
+          type: number
+          format: double
+          example: 2950.00
+          description: 开盘价
+        high:
+          type: number
+          format: double
+          example: 2970.00
+          description: 最高价
+        low:
+          type: number
+          format: double
+          example: 2940.00
+          description: 最低价
+        close:
+          type: number
+          format: double
+          example: 2965.00
+          description: 收盘价
+        volume:
+          type: integer
+          format: int64
+          example: 285455945
+          description: 成交量
+
+    # ============ Fundamental ============
+    FundamentalResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/FundamentalData'
+
+    FundamentalData:
+      type: object
+      properties:
+        symbol:
+          type: string
+          example: "600000"
+          description: 标的代码
+        type:
+          type: string
+          enum: [STOCK, INDEX, ETF, FUND]
+          example: "STOCK"
+          description: 标的类型
+        # 股票字段
+        marketCap:
+          type: number
+          format: double
+          nullable: true
+          example: 123456789000.00
+          description: 总市值（元）
+        circulatingMarketCap:
+          type: number
+          format: double
+          nullable: true
+          example: 98765432100.00
+          description: 流通市值（元）
+        totalShares:
+          type: number
+          format: double
+          nullable: true
+          example: 1234567890.00
+          description: 总股本（股）
+        circulatingShares:
+          type: number
+          format: double
+          nullable: true
+          example: 987654321.00
+          description: 流通股本（股）
+        peRatio:
+          type: number
+          format: double
+          nullable: true
+          example: 15.23
+          description: 市盈率
+        peRatioTtm:
+          type: number
+          format: double
+          nullable: true
+          example: 14.56
+          description: 市盈率 TTM
+        pbRatio:
+          type: number
+          format: double
+          nullable: true
+          example: 1.23
+          description: 市净率
+        psRatio:
+          type: number
+          format: double
+          nullable: true
+          example: 2.34
+          description: 市销率
+        pcRatio:
+          type: number
+          format: double
+          nullable: true
+          example: 12.34
+          description: 市现率
+        dividendYield:
+          type: number
+          format: double
+          nullable: true
+          example: 3.45
+          description: 股息率（%）
+        bvps:
+          type: number
+          format: double
+          nullable: true
+          example: 10.23
+          description: 每股净资产（元）
+        eps:
+          type: number
+          format: double
+          nullable: true
+          example: 1.23
+          description: 每股收益（元）
+        epsYoy:
+          type: number
+          format: double
+          nullable: true
+          example: 15.6
+          description: 每股收益同比增长率（%）
+        roe:
+          type: number
+          format: double
+          nullable: true
+          example: 18.5
+          description: 净资产收益率（%）
+        roeDiluted:
+          type: number
+          format: double
+          nullable: true
+          example: 17.8
+          description: 净资产收益率-摊薄（%）
+        grossMargin:
+          type: number
+          format: double
+          nullable: true
+          example: 35.6
+          description: 毛利率（%）
+        netMargin:
+          type: number
+          format: double
+          nullable: true
+          example: 18.2
+          description: 净利率（%）
+        # 股票特有字段
+        industry:
+          type: string
+          nullable: true
+          example: "银行"
+          description: 所属行业
+        listedDate:
+          type: string
+          nullable: true
+          example: "19910129"
+          description: 上市日期
+        # ETF 字段
+        nav:
+          type: number
+          format: double
+          nullable: true
+          example: 2.345
+          description: 单位净值
+        navDate:
+          type: string
+          nullable: true
+          example: "2024-01-15"
+          description: 净值日期
+        totalAssets:
+          type: number
+          format: double
+          nullable: true
+          example: 5000000000.00
+          description: 资产规模（元）
+        # 通用字段
+        lastUpdated:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00Z"
+          description: 最后更新时间
+
+    # ============ Financial ============
+    FinancialResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/FinancialData'
+
+    FinancialData:
+      type: object
+      properties:
+        symbol:
+          type: string
+          example: "600000"
+          description: 标的代码
+        indicator:
+          type: string
+          example: "report"
+          description: 数据类型 (report=按报告期, quarter=按单季度)
+        reportDates:
+          type: array
+          items:
+            type: string
+          example: ["2023-12-31", "2023-09-30", "2023-06-30", "2023-03-31"]
+          description: 报告期列表
+        indicators:
+          type: array
+          items:
+            $ref: '#/components/schemas/FinancialIndicator'
+          description: 财务指标列表
+
+    FinancialIndicator:
+      type: object
+      description: 财务指标项
+      properties:
+        reportDate:
+          type: string
+          example: "2023-12-31"
+          description: 报告期
+        revenue:
+          type: number
+          format: double
+          nullable: true
+          example: 123456789000.00
+          description: 营业收入（元）
+        netProfit:
+          type: number
+          format: double
+          nullable: true
+          example: 12345678900.00
+          description: 净利润（元）
+        operatingProfit:
+          type: number
+          format: double
+          nullable: true
+          example: 15000000000.00
+          description: 营业利润（元）
+        totalAssets:
+          type: number
+          format: double
+          nullable: true
+          example: 500000000000.00
+          description: 总资产（元）
+        totalLiabilities:
+          type: number
+          format: double
+          nullable: true
+          example: 300000000000.00
+          description: 总负债（元）
+        shareholdersEquity:
+          type: number
+          format: double
+          nullable: true
+          example: 200000000000.00
+          description: 股东权益（元）
+        roe:
+          type: number
+          format: double
+          nullable: true
+          example: 15.6
+          description: 净资产收益率（%）
+        roeDiluted:
+          type: number
+          format: double
+          nullable: true
+          example: 14.8
+          description: 净资产收益率-摊薄（%）
+        grossMargin:
+          type: number
+          format: double
+          nullable: true
+          example: 35.6
+          description: 毛利率（%）
+        netMargin:
+          type: number
+          format: double
+          nullable: true
+          example: 18.2
+          description: 净利率（%）
+        basicEps:
+          type: number
+          format: double
+          nullable: true
+          example: 1.23
+          description: 每股收益-基本（元）
+        dilutedEps:
+          type: number
+          format: double
+          nullable: true
+          example: 1.20
+          description: 每股收益-摊薄（元）
+        bvps:
+          type: number
+          format: double
+          nullable: true
+          example: 10.23
+          description: 每股净资产（元）
+        peRatioTtm:
+          type: number
+          format: double
+          nullable: true
+          example: 12.5
+          description: 市盈率 TTM
+        pbRatio:
+          type: number
+          format: double
+          nullable: true
+          example: 1.1
+          description: 市净率
+
+    # ============ CapitalFlow ============
+    CapitalFlowResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/CapitalFlowData'
+
+    CapitalFlowData:
+      type: object
+      properties:
+        symbol:
+          type: string
+          example: "600000"
+          description: 标的代码
+        type:
+          type: string
+          enum: [STOCK, ETF, FUND]
+          example: "STOCK"
+          description: |
+            标的类型枚举，与后端 SecurityType 一致：
+            - STOCK: 股票
+            - ETF: 交易所交易基金
+            - FUND: 基金
+            注意：指数不支持资金流向数据
+        mainNetInflow:
+          type: number
+          format: double
+          nullable: true
+          example: 12345678.90
+          description: 主力净流入（元）
+        mainNetInflowRate:
+          type: number
+          format: double
+          nullable: true
+          example: 2.35
+          description: 主力净流入占比（%）
+        superNetInflow:
+          type: number
+          format: double
+          nullable: true
+          example: 5000000.00
+          description: 超大单净流入（元）
+        superNetInflowRate:
+          type: number
+          format: double
+          nullable: true
+          example: 0.95
+          description: 超大单净流入占比（%）
+        largeNetInflow:
+          type: number
+          format: double
+          nullable: true
+          example: 3000000.00
+          description: 大单净流入（元）
+        largeNetInflowRate:
+          type: number
+          format: double
+          nullable: true
+          example: 0.57
+          description: 大单净流入占比（%）
+        mediumNetInflow:
+          type: number
+          format: double
+          nullable: true
+          example: 2000000.00
+          description: 中单净流入（元）
+        mediumNetInflowRate:
+          type: number
+          format: double
+          nullable: true
+          example: 0.38
+          description: 中单净流入占比（%）
+        smallNetInflow:
+          type: number
+          format: double
+          nullable: true
+          example: -1000000.00
+          description: 小单净流入（元）
+        smallNetInflowRate:
+          type: number
+          format: double
+          nullable: true
+          example: -0.19
+          description: 小单净流入占比（%）
+        error:
+          type: string
+          nullable: true
+          example: "INDEX_NOT_SUPPORTED"
+          description: 错误信息（指数不支持时）
+        lastUpdated:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00Z"
+          description: 最后更新时间
+
+    # ============ Search ============
+    SearchResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/SearchResult'
+
+    SearchResult:
+      type: object
+      properties:
+        symbol:
+          type: string
+          example: "600000"
+          description: 标的代码
+        name:
+          type: string
+          example: "浦发银行"
+          description: 标的名称
+        market:
+          type: string
+          enum: [A_SHARE, HK, US]
+          example: "A_SHARE"
+          description: |
+            市场类型枚举，与后端 MarketType 一致：
+            - A_SHARE: A 股
+            - HK: 港股
+            - US: 美股
+        type:
+          type: string
+          enum: [STOCK, ETF, FUND]
+          example: "STOCK"
+          description: |
+            标的类型枚举，与后端 SecurityType 一致：
+            - STOCK: 股票
+            - ETF: 交易所交易基金
+            - FUND: 基金
+            注意：指数不通过此接口获取，请使用专门的指数 K 线接口
+
+  # ============ 错误响应 ============
+  responses:
+    BadRequest:
+      description: 请求参数错误
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+                example: 400
+              message:
+                type: string
+                example: "Invalid parameter: symbol is required"
+              data:
+                type: null
+
+    InternalError:
+      description: 服务器内部错误
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+                example: 500
+              message:
+                type: string
+                example: "Internal server error"
+              data:
+                type: null

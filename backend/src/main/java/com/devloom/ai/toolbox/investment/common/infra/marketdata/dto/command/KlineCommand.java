@@ -1,17 +1,14 @@
 package com.devloom.ai.toolbox.investment.common.infra.marketdata.dto.command;
 
 import com.devloom.ai.toolbox.investment.common.domain.enums.MarketType;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.experimental.SuperBuilder;
+import lombok.Data;
 
 /**
  * K 线命令。
  *
  * @author devloom
  */
-@Getter
-@SuperBuilder
+@Data
 public class KlineCommand {
 
     /** 标的代码。 */
@@ -30,6 +27,5 @@ public class KlineCommand {
     private String endDate;
 
     /** 数据条数限制。 */
-    @Builder.Default
     private int limit = 500;
 }

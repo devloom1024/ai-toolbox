@@ -1,7 +1,6 @@
 package com.devloom.ai.toolbox.investment.common.infra.marketdata.dto.result;
 
-import lombok.Getter;
-import lombok.experimental.SuperBuilder;
+import lombok.Data;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -12,8 +11,7 @@ import java.util.List;
  *
  * @author devloom
  */
-@Getter
-@SuperBuilder
+@Data
 public class KlineResult {
 
     /** 标的代码。 */
@@ -25,8 +23,7 @@ public class KlineResult {
     /** K 线数据列表。 */
     private List<KlineItem> klines;
 
-    @Getter
-    @SuperBuilder
+    @Data
     public static class KlineItem {
 
         /** 时间戳。 */
