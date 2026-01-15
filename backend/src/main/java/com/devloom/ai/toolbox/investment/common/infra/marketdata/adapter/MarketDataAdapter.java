@@ -1,7 +1,7 @@
 package com.devloom.ai.toolbox.investment.common.infra.marketdata.adapter;
 
-import com.devloom.ai.toolbox.investment.common.infra.marketdata.dto.request.*;
-import com.devloom.ai.toolbox.investment.common.infra.marketdata.dto.response.*;
+import com.devloom.ai.toolbox.investment.common.infra.marketdata.dto.command.*;
+import com.devloom.ai.toolbox.investment.common.infra.marketdata.dto.result.*;
 
 import java.util.List;
 
@@ -34,10 +34,10 @@ public interface MarketDataAdapter {
     /**
      * 搜索标的。
      *
-     * @param request 搜索请求
+     * @param command 搜索命令
      * @return 搜索结果列表
      */
-    default List<SecuritySearchResponse> search(SearchRequest request) {
+    default List<SecuritySearchResult> search(SearchCommand command) {
         throw new UnsupportedOperationException(getName() + " does not support search");
     }
 
@@ -46,10 +46,10 @@ public interface MarketDataAdapter {
     /**
      * 获取实时行情。
      *
-     * @param request 行情请求
+     * @param command 行情命令
      * @return 行情数据
      */
-    default QuoteResponse getQuote(QuoteRequest request) {
+    default QuoteResult getQuote(QuoteCommand command) {
         throw new UnsupportedOperationException(getName() + " does not support getQuote");
     }
 
@@ -58,10 +58,10 @@ public interface MarketDataAdapter {
     /**
      * 获取 K 线数据。
      *
-     * @param request K 线请求
+     * @param command K 线命令
      * @return K 线数据列表
      */
-    default KlineResponse getKline(KlineRequest request) {
+    default KlineResult getKline(KlineCommand command) {
         throw new UnsupportedOperationException(getName() + " does not support getKline");
     }
 
@@ -70,10 +70,10 @@ public interface MarketDataAdapter {
     /**
      * 获取基本面数据。
      *
-     * @param request 基本面请求
+     * @param command 基本面命令
      * @return 基本面数据
      */
-    default FundamentalResponse getFundamental(FundamentalRequest request) {
+    default FundamentalResult getFundamental(FundamentalCommand command) {
         throw new UnsupportedOperationException(getName() + " does not support getFundamental");
     }
 
@@ -82,10 +82,10 @@ public interface MarketDataAdapter {
     /**
      * 获取财务指标。
      *
-     * @param request 财务指标请求
+     * @param command 财务指标命令
      * @return 财务指标数据
      */
-    default FinancialResponse getFinancial(FinancialRequest request) {
+    default FinancialResult getFinancial(FinancialCommand command) {
         throw new UnsupportedOperationException(getName() + " does not support getFinancial");
     }
 
@@ -94,10 +94,10 @@ public interface MarketDataAdapter {
     /**
      * 获取资金流向。
      *
-     * @param request 资金流向请求
+     * @param command 资金流向命令
      * @return 资金流向数据
      */
-    default CapitalFlowResponse getCapitalFlow(CapitalFlowRequest request) {
+    default CapitalFlowResult getCapitalFlow(CapitalFlowCommand command) {
         throw new UnsupportedOperationException(getName() + " does not support getCapitalFlow");
     }
 }

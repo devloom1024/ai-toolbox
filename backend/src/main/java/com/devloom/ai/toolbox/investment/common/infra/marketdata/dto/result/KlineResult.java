@@ -1,20 +1,20 @@
-package com.devloom.ai.toolbox.investment.common.infra.marketdata.dto.response;
+package com.devloom.ai.toolbox.investment.common.infra.marketdata.dto.result;
 
-import lombok.Builder;
 import lombok.Getter;
+import lombok.experimental.SuperBuilder;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * K 线响应。
+ * K 线结果。
  *
  * @author devloom
  */
 @Getter
-@Builder
-public class KlineResponse {
+@SuperBuilder
+public class KlineResult {
 
     /** 标的代码。 */
     private String symbol;
@@ -26,7 +26,7 @@ public class KlineResponse {
     private List<KlineItem> klines;
 
     @Getter
-    @Builder
+    @SuperBuilder
     public static class KlineItem {
 
         /** 时间戳。 */

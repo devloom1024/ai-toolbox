@@ -1,19 +1,19 @@
-package com.devloom.ai.toolbox.investment.common.infra.marketdata.dto.response;
+package com.devloom.ai.toolbox.investment.common.infra.marketdata.dto.result;
 
-import lombok.Builder;
 import lombok.Getter;
+import lombok.experimental.SuperBuilder;
 
 import java.math.BigDecimal;
 import java.util.List;
 
 /**
- * 财务指标响应。
+ * 财务指标结果。
  *
  * @author devloom
  */
 @Getter
-@Builder
-public class FinancialResponse {
+@SuperBuilder
+public class FinancialResult {
 
     /** 标的代码。 */
     private String symbol;
@@ -25,7 +25,7 @@ public class FinancialResponse {
     private List<FinancialIndicator> indicators;
 
     @Getter
-    @Builder
+    @SuperBuilder
     public static class FinancialIndicator {
 
         /** 报告期。 */

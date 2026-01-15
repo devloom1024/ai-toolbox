@@ -337,11 +337,17 @@ LinuxDo 回调到前端 → 前端调用 /api/v1/auth/oauth/linuxdo/callback
 
 ### DTO 层
 
-1. **命名规范** (与 `.claude/reference/openapi-best-practices.md` 保持一致):
+1. **API 层 DTO 命名规范** (与 `.claude/reference/openapi-best-practices.md` 保持一致):
    - 请求 DTO: `*Request` (如 `LoginRequest`)
    - 响应 DTO: `*Response` (如 `TokenResponse`)
-2. **字段注释**: 所有字段必须有 Javadoc 注释
-3. **校验注解**: Bean Validation 的 `message` 必须引用国际化资源键
+2. **基础设施层 DTO 命名规范** (适配器内部使用):
+   - 请求 DTO: `*Command` (如 `AkShareQuoteCommand`)
+   - 响应 DTO: `*Result` (如 `AkShareQuoteResult`)
+3. **禁止事项**:
+   - ❌ Infra 层 DTO 禁止使用 `*Request/*Response` 后缀 (与 API 层冲突)
+   - ❌ 除非必须使用 Builder 模式，否则不要使用 `@Builder` 注解
+4. **字段注释**: 所有字段必须有 Javadoc 注释
+5. **校验注解**: Bean Validation 的 `message` 必须引用国际化资源键
 
 ### Entity 层
 

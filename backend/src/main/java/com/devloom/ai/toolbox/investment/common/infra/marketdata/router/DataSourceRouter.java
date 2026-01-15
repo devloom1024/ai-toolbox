@@ -1,5 +1,6 @@
 package com.devloom.ai.toolbox.investment.common.infra.marketdata.router;
 
+import com.devloom.ai.toolbox.investment.common.domain.enums.MarketType;
 import com.devloom.ai.toolbox.investment.common.infra.marketdata.adapter.MarketDataAdapter;
 import com.devloom.ai.toolbox.investment.common.infra.marketdata.config.MarketDataProperties;
 import lombok.RequiredArgsConstructor;
@@ -29,7 +30,7 @@ public class DataSourceRouter {
      * @param market 市场类型
      * @return 数据源适配器
      */
-    public MarketDataAdapter select(MarketDataFeature feature, String market) {
+    public MarketDataAdapter select(MarketDataFeature feature, MarketType market) {
         MarketDataProperties.FeatureRouting routing = properties.getRouting(feature.getKey());
 
         if (routing == null) {
@@ -63,33 +64,33 @@ public class DataSourceRouter {
     /**
      * 获取 K 线数据源适配器。
      */
-    public MarketDataAdapter selectForKline(String market) {
+    public MarketDataAdapter selectForKline(MarketType market) {
         return select(MarketDataFeature.KLINE, market);
     }
 
     /**
      * 获取基本面数据源适配器。
      */
-    public MarketDataAdapter selectForFundamental(String market) {
+    public MarketDataAdapter selectForFundamental(MarketType market) {
         return select(MarketDataFeature.FUNDAMENTAL, market);
     }
 
     /**
      * 获取财务指标数据源适配器。
      */
-    public MarketDataAdapter selectForFinancial(String market) {
+    public MarketDataAdapter selectForFinancial(MarketType market) {
         return select(MarketDataFeature.FINANCIAL, market);
     }
 
     /**
      * 获取资金流向数据源适配器。
      */
-    public MarketDataAdapter selectForCapitalFlow(String market) {
+    public MarketDataAdapter selectForCapitalFlow(MarketType market) {
         return select(MarketDataFeature.CAPITAL_FLOW, market);
     }
 
     private MarketDataAdapter selectWithFallback(MarketDataProperties.FeatureRouting routing,
-                                                 MarketDataFeature feature, String market) {
+                                                 MarketDataFeature feature, MarketType market) {
         List<String> chain = routing.getFallback();
 
         if (chain == null || chain.isEmpty()) {
@@ -118,7 +119,7 @@ public class DataSourceRouter {
         return selectPrimaryOrFirst(routing.getPrimary(), feature, market);
     }
 
-    private MarketDataAdapter selectPrimaryOrFirst(String primarySource, MarketDataFeature feature, String market) {
+    private MarketDataAdapter selectPrimaryOrFirst(String primarySource, MarketDataFeature feature, MarketType market) {
         MarketDataAdapter primary = findAdapter(primarySource);
         if (primary != null && primary.isAvailable()) {
             log.warn("Using primary source for unsupported market: feature={}, market={}",
@@ -144,7 +145,7 @@ public class DataSourceRouter {
                 .orElse(null);
     }
 
-    private boolean isMarketSupported(String source, String market) {
+    private boolean isMarketSupported(String source, MarketType market) {
         if (market == null) {
             return true;
         }

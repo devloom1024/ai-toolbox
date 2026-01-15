@@ -1,5 +1,6 @@
 package com.devloom.ai.toolbox.investment.common.infra.marketdata.config;
 
+import com.devloom.ai.toolbox.investment.common.domain.enums.MarketType;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
@@ -32,7 +33,7 @@ public class MarketDataProperties {
         private int priority = 1;
 
         /** 支持的市场列表。 */
-        private List<String> markets;
+        private List<MarketType> markets;
     }
 
     @Data

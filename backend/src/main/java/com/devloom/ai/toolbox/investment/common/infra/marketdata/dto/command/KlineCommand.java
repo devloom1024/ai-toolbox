@@ -1,22 +1,24 @@
-package com.devloom.ai.toolbox.investment.common.infra.marketdata.dto.request;
+package com.devloom.ai.toolbox.investment.common.infra.marketdata.dto.command;
 
+import com.devloom.ai.toolbox.investment.common.domain.enums.MarketType;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.experimental.SuperBuilder;
 
 /**
- * K 线请求。
+ * K 线命令。
  *
  * @author devloom
  */
 @Getter
-@Builder
-public class KlineRequest {
+@SuperBuilder
+public class KlineCommand {
 
     /** 标的代码。 */
     private String symbol;
 
     /** 市场类型。 */
-    private String market;
+    private MarketType market;
 
     /** K 线周期：D/W/M/5/15/30/60。 */
     private String period;
@@ -28,5 +30,6 @@ public class KlineRequest {
     private String endDate;
 
     /** 数据条数限制。 */
+    @Builder.Default
     private int limit = 500;
 }

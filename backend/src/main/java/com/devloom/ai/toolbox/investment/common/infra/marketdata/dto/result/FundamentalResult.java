@@ -1,19 +1,19 @@
-package com.devloom.ai.toolbox.investment.common.infra.marketdata.dto.response;
+package com.devloom.ai.toolbox.investment.common.infra.marketdata.dto.result;
 
-import lombok.Builder;
 import lombok.Getter;
+import lombok.experimental.SuperBuilder;
 
 import java.math.BigDecimal;
 import java.time.Instant;
 
 /**
- * 基本面响应。
+ * 基本面结果。
  *
  * @author devloom
  */
 @Getter
-@Builder
-public class FundamentalResponse {
+@SuperBuilder
+public class FundamentalResult {
 
     /** 标的代码。 */
     private String symbol;

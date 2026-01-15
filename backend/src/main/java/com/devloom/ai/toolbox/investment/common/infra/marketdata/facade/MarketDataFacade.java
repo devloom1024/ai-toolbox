@@ -1,7 +1,9 @@
 package com.devloom.ai.toolbox.investment.common.infra.marketdata.facade;
 
+import com.devloom.ai.toolbox.investment.common.domain.enums.MarketType;
 import com.devloom.ai.toolbox.investment.common.infra.marketdata.adapter.MarketDataAdapter;
-import com.devloom.ai.toolbox.investment.common.infra.marketdata.dto.*;
+import com.devloom.ai.toolbox.investment.common.infra.marketdata.dto.command.*;
+import com.devloom.ai.toolbox.investment.common.infra.marketdata.dto.result.*;
 import com.devloom.ai.toolbox.investment.common.infra.marketdata.router.DataSourceRouter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,13 +30,13 @@ public class MarketDataFacade {
     /**
      * 搜索标的。
      *
-     * @param request 搜索请求
+     * @param command 搜索命令
      * @return 搜索结果列表
      */
-    public List<SecuritySearchResult> search(SearchRequest request) {
-        log.debug("Searching for keyword: {}, market: {}", request.getKeyword(), request.getMarket());
+    public List<SecuritySearchResult> search(SearchCommand command) {
+        log.debug("Searching for keyword: {}, market: {}", command.getKeyword(), command.getMarket());
         MarketDataAdapter adapter = router.selectForSearch();
-        return adapter.search(request);
+        return adapter.search(command);
     }
 
     // ========== 实时行情 ==========
@@ -42,14 +44,13 @@ public class MarketDataFacade {
     /**
      * 获取实时行情。
      *
-     * @param symbol 标的代码
-     * @param market 市场类型
+     * @param command 行情命令
      * @return 行情数据
      */
-    public QuoteResponse getQuote(String symbol, String market) {
-        log.debug("Getting quote for {} market: {}", symbol, market);
-        MarketDataAdapter adapter = router.selectForKline(market);
-        return adapter.getQuote(symbol, market);
+    public QuoteResult getQuote(QuoteCommand command) {
+        log.debug("Getting quote for {} market: {}", command.getSymbol(), command.getMarket());
+        MarketDataAdapter adapter = router.selectForKline(command.getMarket());
+        return adapter.getQuote(command);
     }
 
     // ========== K 线数据 ==========
@@ -65,11 +66,11 @@ public class MarketDataFacade {
      * @param limit 数据条数限制
      * @return K 线数据列表
      */
-    public KlineResponse getKline(String symbol, String market, String period,
+    public KlineResult getKline(String symbol, MarketType market, String period,
             String startDate, String endDate, int limit) {
         log.debug("Getting kline for {} market: {} period: {}", symbol, market, period);
         MarketDataAdapter adapter = router.selectForKline(market);
-        KlineRequest request = KlineRequest.builder()
+        KlineCommand command = KlineCommand.builder()
                 .symbol(symbol)
                 .market(market)
                 .period(period)
@@ -77,7 +78,7 @@ public class MarketDataFacade {
                 .endDate(endDate)
                 .limit(limit)
                 .build();
-        return adapter.getKline(request);
+        return adapter.getKline(command);
     }
 
     // ========== 基本面数据 ==========
@@ -85,14 +86,13 @@ public class MarketDataFacade {
     /**
      * 获取基本面数据。
      *
-     * @param symbol 标的代码
-     * @param market 市场类型
+     * @param command 基本面命令
      * @return 基本面数据
      */
-    public FundamentalResponse getFundamental(String symbol, String market) {
-        log.debug("Getting fundamental for {} market: {}", symbol, market);
-        MarketDataAdapter adapter = router.selectForFundamental(market);
-        return adapter.getFundamental(symbol, market);
+    public FundamentalResult getFundamental(FundamentalCommand command) {
+        log.debug("Getting fundamental for {} market: {}", command.getSymbol(), command.getMarket());
+        MarketDataAdapter adapter = router.selectForFundamental(command.getMarket());
+        return adapter.getFundamental(command);
     }
 
     // ========== 财务指标 ==========
@@ -100,14 +100,13 @@ public class MarketDataFacade {
     /**
      * 获取财务指标。
      *
-     * @param symbol 标的代码
-     * @param market 市场类型
+     * @param command 财务指标命令
      * @return 财务指标数据
      */
-    public FinancialResponse getFinancial(String symbol, String market) {
-        log.debug("Getting financial for {} market: {}", symbol, market);
-        MarketDataAdapter adapter = router.selectForFinancial(market);
-        return adapter.getFinancial(symbol, market);
+    public FinancialResult getFinancial(FinancialCommand command) {
+        log.debug("Getting financial for {} market: {}", command.getSymbol(), command.getMarket());
+        MarketDataAdapter adapter = router.selectForFinancial(command.getMarket());
+        return adapter.getFinancial(command);
     }
 
     // ========== 资金流向 ==========
@@ -115,13 +114,12 @@ public class MarketDataFacade {
     /**
      * 获取资金流向。
      *
-     * @param symbol 标的代码
-     * @param market 市场类型
+     * @param command 资金流向命令
      * @return 资金流向数据
      */
-    public CapitalFlowResponse getCapitalFlow(String symbol, String market) {
-        log.debug("Getting capital flow for {} market: {}", symbol, market);
-        MarketDataAdapter adapter = router.selectForCapitalFlow(market);
-        return adapter.getCapitalFlow(symbol, market);
+    public CapitalFlowResult getCapitalFlow(CapitalFlowCommand command) {
+        log.debug("Getting capital flow for {} market: {}", command.getSymbol(), command.getMarket());
+        MarketDataAdapter adapter = router.selectForCapitalFlow(command.getMarket());
+        return adapter.getCapitalFlow(command);
     }
 }
